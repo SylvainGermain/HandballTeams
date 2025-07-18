@@ -52,9 +52,27 @@ module.exports = (env, argv) => {
       ] : [])
     ],
     devServer: {
-      static: './dist',
+      static: {
+        directory: path.join(__dirname, 'dist'),
+        watch: true,
+      },
+      watchFiles: [
+        'src/**/*',
+        'resources/**/*',
+      ],
       port: 3000,
       hot: true,
+      liveReload: true,
+      open: true,
+      compress: true,
+      historyApiFallback: true,
+      client: {
+        overlay: {
+          errors: true,
+          warnings: false,
+        },
+        progress: true,
+      },
     },
     optimization: {
       splitChunks: false, // Disable code splitting to produce a single JS file

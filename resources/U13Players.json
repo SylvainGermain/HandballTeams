@@ -1,0 +1,44 @@
+{
+  "players":[
+    {
+     "name": "Benoit",
+     "physique": 3,
+     "technique": 0.5,
+     "defense": 3,
+     "intelligence": 1,
+     "attaque": 1,
+     "vitesse": 1.5,
+     "poste": "Coach"
+    },
+    {
+     "name": "Maxime",
+     "physique": 3,
+     "technique": 0.5,
+     "defense": 3,
+     "intelligence": 1,
+     "attaque": 1,
+     "vitesse": 1.5,
+     "poste": "Coach"
+    },
+    {
+     "name": "Pif",
+     "physique": 3,
+     "technique": 0.5,
+     "defense": 3,
+     "intelligence": 1,
+     "attaque": 1,
+     "vitesse": 1.5,
+     "poste": "AG"
+    },
+    {
+     "name": "Hercule",
+     "physique": 3,
+     "technique": 0.5,
+     "defense": 3,
+     "intelligence": 1,
+     "attaque": 1,
+     "vitesse": 1.5,
+     "poste": "Pivot"
+    }
+  ]
+}

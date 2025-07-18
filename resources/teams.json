@@ -1,0 +1,24 @@
+{
+  "teams": [
+    {
+        "id": "U13",
+        "name": "Team U13",
+        "description": "A competitive handball team with strong offensive capabilities and excellent teamwork."
+    },
+    {
+        "id": "U15",
+        "name": "Team U15",
+        "description": "Known for their defensive strategies and quick counter-attacks. A formidable opponent."
+    },
+    {
+        "id": "U18",
+        "name": "Team U18",
+        "description": "An energetic team with innovative playing styles."
+    },
+    {
+        "id": "O16",
+        "name": "Team Senior",
+        "description": "A strong and well-established team. Ready to face any challenge."
+    }
+  ]
+}

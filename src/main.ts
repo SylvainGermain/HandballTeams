@@ -1,53 +1,13 @@
 import './styles.css';
-
-// Interface for team data
-interface Team {
-    id: number;
-    name: string;
-    description: string;
-    wins: number;
-    losses: number;
-    players: number;
-    founded: number;
-}
-
-// Sample handball teams data
-const teamsData: Team[] = [
-    {
-        id: 1,
-        name: "Team Alpha",
-        description: "A competitive handball team with strong offensive capabilities and excellent teamwork.",
-        wins: 15,
-        losses: 3,
-        players: 12,
-        founded: 2018
-    },
-    {
-        id: 2,
-        name: "Team Beta",
-        description: "Known for their defensive strategies and quick counter-attacks. A formidable opponent.",
-        wins: 12,
-        losses: 6,
-        players: 14,
-        founded: 2019
-    },
-    {
-        id: 3,
-        name: "Team Gamma",
-        description: "A young and energetic team with great potential and innovative playing styles.",
-        wins: 8,
-        losses: 10,
-        players: 11,
-        founded: 2020
-    }
-];
+import teamsData from '../resources/teams.json';
+import { Modal, type Team } from './modal';
 
 class HandballTeamsApp {
     private teams: Team[];
     private container: HTMLElement;
 
     constructor() {
-        this.teams = teamsData;
+        this.teams = teamsData.teams;
         const containerElement = document.getElementById('teams-container');
         if (!containerElement) {
             throw new Error('Teams container element not found');
@@ -62,33 +22,23 @@ class HandballTeamsApp {
     }
 
     private addEventListeners(): void {
-        // Add event listeners for interactive features
-        document.addEventListener('click', (e: Event) => {
-            const target = e.target as HTMLElement;
-            if (target.classList.contains('btn-add-win')) {
-                const teamId = parseInt(target.dataset.teamId || '0');
-                this.addWin(teamId);
-            }
-            if (target.classList.contains('btn-add-loss')) {
-                const teamId = parseInt(target.dataset.teamId || '0');
-                this.addLoss(teamId);
-            }
+        // Add event listeners directly to detail buttons
+        const detailButtons = document.querySelectorAll('.btn-details');
+        detailButtons.forEach(button => {
+            button.addEventListener('click', (event: Event) => {
+                const target = event.target as HTMLElement;
+                const teamId = target.getAttribute('data-team-id');
+                if (teamId) {
+                    this.showTeamDetails(teamId);
+                }
+            });
         });
     }
 
-    private addWin(teamId: number): void {
+    private showTeamDetails(teamId: string): void {
         const team = this.teams.find(t => t.id === teamId);
         if (team) {
-            team.wins++;
-            this.render();
-        }
-    }
-
-    private addLoss(teamId: number): void {
-        const team = this.teams.find(t => t.id === teamId);
-        if (team) {
-            team.losses++;
-            this.render();
+            Modal.show(team);
         }
     }
 
@@ -97,24 +47,8 @@ class HandballTeamsApp {
             <div class="team-card">
                 <h3>${team.name}</h3>
                 <p>${team.description}</p>
-                <p><strong>Founded:</strong> ${team.founded}</p>
-                <div class="stats">
-                    <div class="stat">
-                        <div class="stat-number">${team.wins}</div>
-                        <div class="stat-label">Wins</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">${team.losses}</div>
-                        <div class="stat-label">Losses</div>
-                    </div>
-                    <div class="stat">
-                        <div class="stat-number">${team.players}</div>
-                        <div class="stat-label">Players</div>
-                    </div>
-                </div>
                 <div style="margin-top: 15px; text-align: center;">
-                    <button class="btn btn-success btn-add-win" data-team-id="${team.id}">Add Win</button>
-                    <button class="btn btn-add-loss" data-team-id="${team.id}">Add Loss</button>
+                    <button class="btn btn-details" data-team-id="${team.id}">Open Details</button>
                 </div>
             </div>
         `;
@@ -127,9 +61,7 @@ class HandballTeamsApp {
                 ${teamsHTML}
             </div>
             <div style="margin-top: 40px; text-align: center;">
-                <h2>About Handball</h2>
-                <p>Handball is a team sport in which two teams of seven players each pass a ball using their hands with the aim of throwing it into the goal of the other team. The team with the most goals after two periods of 30 minutes wins.</p>
-                <p><strong>Total Teams:</strong> ${this.teams.length} | <strong>Total Players:</strong> ${this.teams.reduce((sum, team) => sum + team.players, 0)}</p>
+                <p><strong>Total Teams:</strong> ${this.teams.length}</p>
             </div>
         `;
     }
@@ -137,13 +69,6 @@ class HandballTeamsApp {
     // Public method to get teams data
     public getTeams(): Team[] {
         return [...this.teams];
-    }
-
-    // Public method to add a new team
-    public addTeam(team: Omit<Team, 'id'>): void {
-        const newId = Math.max(...this.teams.map(t => t.id)) + 1;
-        this.teams.push({ ...team, id: newId });
-        this.render();
     }
 }
 
