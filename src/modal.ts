@@ -2,6 +2,7 @@ import U18PlayersData from '../resources/U18Players.json';
 import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import O16PlayersData from '../resources/O16Players.json';
+import backgroundImage from '../resources/background.png';
 
 // Interface for team data (importing from main)
 interface Team {
@@ -160,33 +161,177 @@ export class Modal {
         return baseContent + playersSection;
     }
 
-    private static createPlayersSection(players: Player[]): string {
+    private static createPlayer(player: Player): string {
+        return `
+            <div style="
+                position: relative;
+                width: 300px;
+                height: 350px;
+                margin: 20px auto;
+                background-image: url('${backgroundImage}');
+                background-size: contain;
+                background-position: center;
+                background-repeat: no-repeat;
+                transition: transform 0.2s ease, filter 0.2s ease;
+                cursor: pointer;
+            " onmouseover="this.style.transform='scale(1.05)'; this.style.filter='brightness(1.1)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='brightness(1)'">
+                
+                <!-- Player Info - Top of hexagon -->
+                <div style="
+                    position: absolute;
+                    top: 40px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    text-align: center;
+                    color: white;
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    z-index: 2;
+                ">
+                    <div style="
+                        background: linear-gradient(135deg, #007bff, #0056b3);
+                        color: white;
+                        padding: 4px 12px;
+                        border-radius: 15px;
+                        font-size: 10px;
+                        font-weight: bold;
+                        text-transform: uppercase;
+                        letter-spacing: 0.5px;
+                        margin-bottom: 8px;
+                        display: inline-block;
+                        box-shadow: 0 2px 8px rgba(0,123,255,0.4);
+                    ">
+                        ${player.poste}
+                    </div>
+                    <h4 style="
+                        margin: 0;
+                        color: white;
+                        font-size: 18px;
+                        font-weight: bold;
+                        text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+                    ">
+                        ${player.name}
+                    </h4>
+                </div>
 
+                <!-- Player Avatar - Center of hexagon -->
+                <div style="
+                    position: absolute;
+                    top: 50%;
+                    left: 50%;
+                    transform: translate(-50%, -50%);
+                    width: 70px;
+                    height: 70px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 50%;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 28px;
+                    font-weight: bold;
+                    color: white;
+                    border: 4px solid rgba(255,255,255,0.4);
+                    text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
+                    backdrop-filter: blur(2px);
+                    z-index: 2;
+                ">
+                    ${player.name.charAt(0)}
+                </div>
+
+                <!-- Stats - Bottom region of hexagon -->
+                <div style="
+                    position: absolute;
+                    bottom: 30px;
+                    left: 50%;
+                    transform: translateX(-50%);
+                    width: 200px;
+                    padding: 10px;
+                    background: rgba(0,0,0,0.8);
+                    border-radius: 15px;
+                    backdrop-filter: blur(5px);
+                    z-index: 2;
+                ">
+                    <div style="
+                        display: grid;
+                        grid-template-columns: 1fr 1fr;
+                        gap: 8px;
+                        font-size: 11px;
+                    ">
+                        ${this.createHexagonStat('PHY', player.physique)}
+                        ${this.createHexagonStat('TEC', player.technique)}
+                        ${this.createHexagonStat('DEF', player.defense)}
+                        ${this.createHexagonStat('INT', player.intelligence)}
+                        ${this.createHexagonStat('ATT', player.attaque)}
+                        ${this.createHexagonStat('VIT', player.vitesse)}
+                    </div>
+                </div>
+            </div>
+        `;
+    }
+
+    private static createHexagonStat(statName: string, value: number): string {
+        const percentage = (value / Modal.maxStat) * 100;
+        const color = this.getStatColor(value);
+        
+        return `
+            <div style="
+                display: flex;
+                align-items: center;
+                justify-content: space-between;
+                padding: 3px 6px;
+                background: rgba(255,255,255,0.1);
+                border-radius: 8px;
+                color: white;
+                margin-bottom: 2px;
+            ">
+                <span style="
+                    font-weight: bold;
+                    font-size: 10px;
+                    color: rgba(255,255,255,0.9);
+                    min-width: 25px;
+                ">${statName}</span>
+                <div style="
+                    flex: 1;
+                    height: 4px;
+                    background: rgba(255,255,255,0.2);
+                    border-radius: 2px;
+                    margin: 0 6px;
+                    overflow: hidden;
+                ">
+                    <div style="
+                        height: 100%;
+                        width: ${percentage}%;
+                        background: ${color};
+                        border-radius: 2px;
+                        transition: width 0.3s ease;
+                    "></div>
+                </div>
+                <span style="
+                    font-weight: bold;
+                    font-size: 10px;
+                    color: ${color};
+                    min-width: 20px;
+                    text-align: right;
+                ">${value}</span>
+            </div>
+        `;
+    }
+    private static createPlayersSection(players: Player[]): string {
         let playersHTML = `
             <div style="margin-top: 25px;">
                 <h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Individual Player Features</h3>
-                <div style="max-height: 400px; overflow-y: auto; padding-right: 10px;">
+                <div style="
+                    max-height: 500px; 
+                    overflow-y: auto; 
+                    padding: 10px;
+                    display: flex;
+                    flex-wrap: wrap;
+                    justify-content: center;
+                    gap: 20px;
+                ">
         `;
 
         players.forEach((player: Player) => {
-            playersHTML += `
-                <div style="border: 1px solid #ddd; border-radius: 8px; padding: 15px; margin-bottom: 15px; background-color: #fafafa;">
-                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
-                        <h4 style="margin: 0; color: #333;">${player.name}</h4>
-                        <span style="background-color: #007bff; color: white; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold;">
-                            ${player.poste.toUpperCase()}
-                        </span>
-                    </div>
-                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-top: 10px;">
-                        ${this.createStatBar('Physique', player.physique)}
-                        ${this.createStatBar('Technique', player.technique)}
-                        ${this.createStatBar('Defense', player.defense)}
-                        ${this.createStatBar('Intelligence', player.intelligence)}
-                        ${this.createStatBar('Attaque', player.attaque)}
-                        ${this.createStatBar('Vitesse', player.vitesse)}
-                    </div>
-                </div>
-            `;
+            playersHTML += this.createPlayer(player);
         });
 
         playersHTML += `
@@ -195,23 +340,6 @@ export class Modal {
         `;
 
         return playersHTML;
-    }
-
-    private static createStatBar(statName: string, value: number): string {
-        const percentage = (value / Modal.maxStat) * 100; // Assuming max value is 3
-        const color = this.getStatColor(value);
-
-        return `
-            <div style="margin-bottom: 8px;">
-                <div style="display: flex; justify-content: space-between; margin-bottom: 3px;">
-                    <span style="font-size: 12px; color: #666; font-weight: 500;">${statName}</span>
-                    <span style="font-size: 12px; color: #333; font-weight: bold;">${value}</span>
-                </div>
-                <div style="background-color: #e0e0e0; border-radius: 10px; height: 6px; overflow: hidden;">
-                    <div style="background-color: ${color}; height: 100%; width: ${percentage}%; transition: width 0.3s ease;"></div>
-                </div>
-            </div>
-        `;
     }
 
     private static getStatColor(value: number): string {
