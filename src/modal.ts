@@ -65,7 +65,7 @@ export class Modal {
             padding: 30px;
             border-radius: 10px;
             box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-            max-width: 700px;
+            max-width: 900px;
             width: 90%;
             max-height: 90vh;
             overflow-y: auto;
@@ -165,8 +165,8 @@ export class Modal {
         return `
             <div style="
                 position: relative;
-                width: 300px;
-                height: 350px;
+                width: 400px;
+                height: 400px;
                 margin: 20px auto;
                 background-image: url('${backgroundImage}');
                 background-size: contain;
@@ -175,11 +175,11 @@ export class Modal {
                 transition: transform 0.2s ease, filter 0.2s ease;
                 cursor: pointer;
             " onmouseover="this.style.transform='scale(1.05)'; this.style.filter='brightness(1.1)'" onmouseout="this.style.transform='scale(1)'; this.style.filter='brightness(1)'">
-                
+
                 <!-- Player Info - Top of hexagon -->
                 <div style="
                     position: absolute;
-                    top: 40px;
+                    top: 10px;
                     left: 50%;
                     transform: translateX(-50%);
                     text-align: center;
@@ -188,7 +188,7 @@ export class Modal {
                     z-index: 2;
                 ">
                     <div style="
-                        background: linear-gradient(135deg, #007bff, #0056b3);
+                        background: linear-gradient(135deg, #00ff7b, #00b356);
                         color: white;
                         padding: 4px 12px;
                         border-radius: 15px;
@@ -203,7 +203,7 @@ export class Modal {
                         ${player.poste}
                     </div>
                     <h4 style="
-                        margin: 0;
+                        margin: 10;
                         color: white;
                         font-size: 18px;
                         font-weight: bold;
@@ -216,7 +216,7 @@ export class Modal {
                 <!-- Player Avatar - Center of hexagon -->
                 <div style="
                     position: absolute;
-                    top: 50%;
+                    top: 40%;
                     left: 50%;
                     transform: translate(-50%, -50%);
                     width: 70px;
@@ -240,14 +240,11 @@ export class Modal {
                 <!-- Stats - Bottom region of hexagon -->
                 <div style="
                     position: absolute;
-                    bottom: 30px;
+                    bottom: 80px;
                     left: 50%;
                     transform: translateX(-50%);
                     width: 200px;
                     padding: 10px;
-                    background: rgba(0,0,0,0.8);
-                    border-radius: 15px;
-                    backdrop-filter: blur(5px);
                     z-index: 2;
                 ">
                     <div style="
@@ -269,16 +266,17 @@ export class Modal {
     }
 
     private static createHexagonStat(statName: string, value: number): string {
-        const percentage = (value / Modal.maxStat) * 100;
-        const color = this.getStatColor(value);
-        
+        const starRating = this.createStarRating(value);
+
         return `
             <div style="
                 display: flex;
                 align-items: center;
                 justify-content: space-between;
-                padding: 3px 6px;
-                background: rgba(255,255,255,0.1);
+                padding: 3px 3px;
+
+                background: linear-gradient(135deg, #172e22ff, #092e1bff);
+                text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
                 border-radius: 8px;
                 color: white;
                 margin-bottom: 2px;
@@ -291,37 +289,72 @@ export class Modal {
                 ">${statName}</span>
                 <div style="
                     flex: 1;
-                    height: 4px;
-                    background: rgba(255,255,255,0.2);
-                    border-radius: 2px;
+                    display: flex;
+                    justify-content: center;
+                    align-items: center;
                     margin: 0 6px;
-                    overflow: hidden;
+                    font-size: 12px;
                 ">
-                    <div style="
-                        height: 100%;
-                        width: ${percentage}%;
-                        background: ${color};
-                        border-radius: 2px;
-                        transition: width 0.3s ease;
-                    "></div>
+                    ${starRating}
                 </div>
-                <span style="
-                    font-weight: bold;
-                    font-size: 10px;
-                    color: ${color};
-                    min-width: 20px;
-                    text-align: right;
-                ">${value}</span>
             </div>
         `;
+    }
+
+    private static createStarRating(value: number): string {
+        const maxStars = 3;
+        const percentage = value / Modal.maxStat; // Normalize to 0-1
+        const filledStars = percentage * maxStars; // Get filled stars as decimal
+
+        let starsHtml = '';
+
+        for (let i = 0; i < maxStars; i++) {
+            const starFill = Math.max(0, Math.min(1, filledStars - i)); // Calculate fill for this star (0-1)
+
+            if (starFill === 0) {
+                // Empty star
+                starsHtml += `
+                    <span style="
+                        color: rgba(255,255,255,0.3);
+                        text-shadow: 0 0 2px rgba(0,0,0,0.5);
+                        margin: 0 1px;
+                    ">★</span>
+                `;
+            } else if (starFill === 1) {
+                // Full star
+                starsHtml += `
+                    <span style="
+                        color: #FFD700;
+                        text-shadow: 0 0 3px rgba(255,215,0,0.6);
+                        margin: 0 1px;
+                    ">★</span>
+                `;
+            } else {
+                // Partially filled star using gradient
+                const fillPercentage = Math.round(starFill * 100);
+                starsHtml += `
+                    <span style="
+                        background: linear-gradient(90deg, #FFD700 ${fillPercentage}%, rgba(255,255,255,0.3) ${fillPercentage}%);
+                        -webkit-background-clip: text;
+                        -webkit-text-fill-color: transparent;
+                        background-clip: text;
+                        text-shadow: none;
+                        margin: 0 1px;
+                        position: relative;
+                    ">★</span>
+                `;
+            }
+        }
+
+        return starsHtml;
     }
     private static createPlayersSection(players: Player[]): string {
         let playersHTML = `
             <div style="margin-top: 25px;">
                 <h3 style="color: #333; margin-bottom: 15px; border-bottom: 2px solid #007bff; padding-bottom: 5px;">Individual Player Features</h3>
                 <div style="
-                    max-height: 500px; 
-                    overflow-y: auto; 
+                    max-height: 500px;
+                    overflow-y: auto;
                     padding: 10px;
                     display: flex;
                     flex-wrap: wrap;
@@ -340,13 +373,6 @@ export class Modal {
         `;
 
         return playersHTML;
-    }
-
-    private static getStatColor(value: number): string {
-        if (value >= 2.5) return '#4CAF50'; // Green for high values
-        if (value >= 1.5) return '#FFC107'; // Yellow for medium values
-        if (value >= 0.5) return '#FF9800'; // Orange for low-medium values
-        return '#F44336'; // Red for low values
     }
 
     private static closeModal(modalOverlay: HTMLElement): void {
