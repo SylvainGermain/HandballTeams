@@ -2,26 +2,31 @@ const fs = require('fs');
 const path = require('path');
 
 // Create static directory if it doesn't exist
-const staticDir = path.join(__dirname, '..', 'static');
+const staticDir = path.join(__dirname, '..', '.');
 if (!fs.existsSync(staticDir)) {
     fs.mkdirSync(staticDir);
 }
 
 // Copy files from dist to static
-const filesToCopy = ['bundle.js', 'index.html', 'styles.css'];
 const distDir = path.join(__dirname, '..', 'dist');
 
-filesToCopy.forEach(file => {
-    const srcPath = path.join(distDir, file);
-    const destPath = path.join(staticDir, file);
+// Get all files from dist directory
+if (fs.existsSync(distDir)) {
+    const allFiles = fs.readdirSync(distDir);
 
-    if (fs.existsSync(srcPath)) {
-        fs.copyFileSync(srcPath, destPath);
-        console.log(`Copied ${file} to static folder`);
-    } else {
-        console.log(`Warning: ${file} not found in dist folder`);
-    }
-});
+    allFiles.forEach(file => {
+        const srcPath = path.join(distDir, file);
+        const destPath = path.join(staticDir, file);
+
+        // Only copy files, not directories
+        if (fs.statSync(srcPath).isFile()) {
+            fs.copyFileSync(srcPath, destPath);
+            console.log(`Copied ${file} to static folder`);
+        }
+    });
+} else {
+    console.log('Warning: dist folder not found. Please run build first.');
+}
 
 // Verify and fix the HTML file to ensure it properly references bundle.js
 const htmlPath = path.join(staticDir, 'index.html');
