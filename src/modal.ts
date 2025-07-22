@@ -158,9 +158,9 @@ export class Modal {
     }
 
     private static getGroupDiv(player: Player): string {
-      return player.poste === Post.COACH ? ''
+      return player.poste === Post.COACH || player.groupe === '2' ? ''
               : ` <div class="flaming player-group">
-                    ${player.groupe}
+                    <span>★</span>
                   </div>`;
     }
     private static createPlayer(player: Player): string {
