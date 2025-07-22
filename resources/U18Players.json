@@ -8,8 +8,8 @@
       "intelligence": "50",
       "attaque": "40",
       "vitesse": "70",
-      "poste": "coach",
-      "poste B": "dc"
+      "poste": "COACH",
+      "posteb": "DC"
     },
     {
       "nom": "Germain",
@@ -20,7 +20,7 @@
       "intelligence": "50",
       "attaque": "40",
       "vitesse": "70",
-      "poste": "coach"
+      "poste": "COACH"
     },
     {
       "prenom": "Pif",
@@ -30,9 +30,9 @@
       "intelligence": "50",
       "attaque": "40",
       "vitesse": "70",
-      "poste": "dc",
-      "poste B": "arg",
-      "poste C": "alg"
+      "poste": "DC",
+      "posteb": "ARG",
+      "postec": "ALG"
     },
     {
       "prenom": "Hercule",
@@ -42,7 +42,7 @@
       "intelligence": "50",
       "attaque": "40",
       "vitesse": "70",
-      "poste": "gk"
+      "poste": "GK"
     }
   ]
 }

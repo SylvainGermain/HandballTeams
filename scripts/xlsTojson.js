@@ -8,7 +8,14 @@ function convertSheet(sheet, sheetName, outputDir) {
   // Convert sheet to JSON
   const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
   // Extract field names from the first row of the data, and trim spaces
-  const fieldNames = jsonData[0].map(field => String(field).trim());
+  const fieldNames = jsonData[0].map(field => {
+    const label = String(field).trim().replaceAll(' ','').toLowerCase();
+    console.log('label', label)
+    return {
+      label: label,
+      toUpper: label.includes('post')
+    };
+  });
 
   // Remove the first row from the data
   const dataWithoutHeader = jsonData.slice(1);
@@ -37,10 +44,10 @@ function convertSheet(sheet, sheetName, outputDir) {
 
       // populate obj with values from the current row
       row.forEach((value, index) => {
-          const v = String(value).trim();
-          if (v.length > 0) {
-            obj[fieldNames[index]] = v; // Convert values to strings
-          }
+        const v = String(value).trim();
+        if (v.length > 0) {
+          obj[fieldNames[index].label] = fieldNames[index].toUpper ? v.toUpperCase() : v; // Convert values to strings
+        }
       });
       return obj;
   });
