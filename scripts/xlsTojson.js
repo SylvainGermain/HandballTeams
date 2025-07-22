@@ -37,7 +37,10 @@ function convertSheet(sheet, sheetName, outputDir) {
 
       // populate obj with values from the current row
       row.forEach((value, index) => {
-          obj[fieldNames[index]] = String(value).trim(); // Convert values to strings
+          const v = String(value).trim();
+          if (v !== '') {
+            obj[fieldNames[index]] = v; // Convert values to strings
+          }
       });
       return obj;
   });

@@ -2,6 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 // Create static directory if it doesn't exist
+// replace '.' by any output folder
 const staticDir = path.join(__dirname, '..', '.');
 if (!fs.existsSync(staticDir)) {
     fs.mkdirSync(staticDir);

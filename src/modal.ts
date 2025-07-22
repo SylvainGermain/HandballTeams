@@ -13,14 +13,18 @@ interface Team {
 
 // Interface for player data
 interface Player {
-    name: string;
-    physique: number;
-    technique: number;
-    defense: number;
-    intelligence: number;
-    attaque: number;
-    vitesse: number;
+    nom?: string;
+    prenom?: string;
+    surnom?: string
+    physique: string;
+    technique: string;
+    defense: string;
+    intelligence: string;
+    attaque: string;
+    vitesse: string;
     poste: string;
+    posteB?: string;
+    posteC?: string;
 }
 
 export class Modal {
@@ -161,6 +165,14 @@ export class Modal {
         return baseContent + playersSection;
     }
 
+    private static getDisplayedName(player: Player): string {
+      return player.surnom ?? player.prenom ?? player.nom ?? 'Unknown';
+    }
+
+    private static getAvatarInitial(player: Player) {
+      return player.surnom?.charAt(0) ?? `${player.nom?.charAt(0)}${player.prenom?.charAt(0)}` ?? 'U';
+    }
+
     private static createPlayer(player: Player): string {
         return `
             <div style="
@@ -209,7 +221,7 @@ export class Modal {
                         font-weight: bold;
                         text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
                     ">
-                        ${player.name}
+                        ${this.getDisplayedName(player)}
                     </h4>
                 </div>
 
@@ -234,7 +246,7 @@ export class Modal {
                     backdrop-filter: blur(2px);
                     z-index: 2;
                 ">
-                    ${player.name.charAt(0)}
+                    ${this.getAvatarInitial(player)}
                 </div>
 
                 <!-- Stats - Bottom region of hexagon -->
@@ -265,8 +277,8 @@ export class Modal {
         `;
     }
 
-    private static createHexagonStat(statName: string, value: number): string {
-        const starRating = this.createStarRating(value);
+    private static createHexagonStat(statName: string, value: string): string {
+        const starRating = this.createStarRating(parseFloat(value));
 
         return `
             <div style="
