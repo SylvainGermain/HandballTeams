@@ -31,14 +31,14 @@ function convertSheet(sheet, sheetName, outputDir) {
       const obj = {};
 
       // initialise obj with empty strings
-      fieldNames.forEach(field => {
-          obj[field] = '';
-      });
+      // fieldNames.forEach(field => {
+      //     obj[field] = '';
+      // });
 
       // populate obj with values from the current row
       row.forEach((value, index) => {
           const v = String(value).trim();
-          if (v !== '') {
+          if (v.length > 0) {
             obj[fieldNames[index]] = v; // Convert values to strings
           }
       });

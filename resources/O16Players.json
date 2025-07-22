@@ -1,7 +1,6 @@
 {
   "players": [
     {
-      "nom": "",
       "prenom": "Benoit",
       "surnom": "Ben",
       "physique": "100",
@@ -11,11 +10,9 @@
       "attaque": "40",
       "vitesse": "70",
       "poste": "coach",
-      "poste B": "dc",
-      "poste C": ""
+      "poste B": "dc"
     },
     {
-      "nom": "",
       "prenom": "Julien",
       "surnom": "Bean",
       "physique": "100",
@@ -25,13 +22,10 @@
       "attaque": "40",
       "vitesse": "70",
       "poste": "coach",
-      "poste B": "alg",
-      "poste C": ""
+      "poste B": "alg"
     },
     {
-      "nom": "",
       "prenom": "Joce",
-      "surnom": "",
       "physique": "100",
       "technique": "50",
       "defense": "30",
@@ -39,13 +33,10 @@
       "attaque": "40",
       "vitesse": "70",
       "poste": "coach",
-      "poste B": "arg",
-      "poste C": ""
+      "poste B": "arg"
     },
     {
-      "nom": "",
       "prenom": "Pif",
-      "surnom": "",
       "physique": "100",
       "technique": "50",
       "defense": "30",
@@ -57,18 +48,14 @@
       "poste C": "alg"
     },
     {
-      "nom": "",
       "prenom": "Hercule",
-      "surnom": "",
       "physique": "100",
       "technique": "50",
       "defense": "30",
       "intelligence": "50",
       "attaque": "40",
       "vitesse": "70",
-      "poste": "gk",
-      "poste B": "",
-      "poste C": ""
+      "poste": "gk"
     }
   ]
 }
