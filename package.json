@@ -7,26 +7,32 @@
     "build": "webpack --mode=production",
     "build:static": "npm run build && npm run copy:static",
     "copy:static": "node scripts/copy-static.js",
+    "convert": "node scripts/xlsTojson.js teamscard.xlsx resources",
     "dev": "webpack --mode=development",
     "start": "webpack serve --mode=development --open --hot",
     "start:dev": "webpack serve --mode=development --open --hot --live-reload",
     "watch": "webpack --mode=development --watch",
-    "serve:static": "cd static && python -m http.server 8080"
+    "serve:static": "python -m http.server 8080"
   },
-  "keywords": ["handball", "teams", "sports"],
+  "keywords": [
+    "handball",
+    "teams",
+    "sports"
+  ],
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/node": "^20.0.0",
+    "css-loader": "^6.8.1",
+    "html-webpack-plugin": "^5.5.3",
+    "mini-css-extract-plugin": "^2.7.6",
+    "style-loader": "^3.3.3",
+    "ts-loader": "^9.4.0",
+    "typescript": "^5.1.0",
     "webpack": "^5.88.0",
     "webpack-cli": "^5.1.4",
     "webpack-dev-server": "^4.15.1",
-    "html-webpack-plugin": "^5.5.3",
-    "css-loader": "^6.8.1",
-    "style-loader": "^3.3.3",
-    "mini-css-extract-plugin": "^2.7.6",
-    "typescript": "^5.1.0",
-    "ts-loader": "^9.4.0",
-    "@types/node": "^20.0.0"
+    "xlsx": "^0.18.5"
   },
   "engines": {
     "node": ">=20.0.0"

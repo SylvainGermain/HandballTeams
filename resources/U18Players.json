@@ -1,44 +1,60 @@
 {
-  "players":[
+  "players": [
     {
-     "name": "Leo",
-     "physique": 3,
-     "technique": 0.5,
-     "defense": 3,
-     "intelligence": 1,
-     "attaque": 1,
-     "vitesse": 1.5,
-     "poste": "Coach"
+      "nom": "",
+      "prenom": "Leo",
+      "surnom": "",
+      "physique": "3",
+      "technique": "0.5",
+      "defense": "3",
+      "intelligence": "1",
+      "attaque": "1",
+      "vitesse": "1.5",
+      "poste 1": "coach",
+      "poste 2": "dc",
+      "poste 3": ""
     },
     {
-     "name": "Sylvain",
-     "physique": 3,
-     "technique": 0.5,
-     "defense": 3,
-     "intelligence": 1,
-     "attaque": 1,
-     "vitesse": 1.5,
-     "poste": "Coach"
+      "nom": "Germain",
+      "prenom": "Sylvain",
+      "surnom": "",
+      "physique": "3",
+      "technique": "0.5",
+      "defense": "3",
+      "intelligence": "1",
+      "attaque": "1",
+      "vitesse": "1.5",
+      "poste 1": "coach",
+      "poste 2": "",
+      "poste 3": ""
     },
     {
-     "name": "Pif",
-     "physique": 3,
-     "technique": 0.5,
-     "defense": 3,
-     "intelligence": 1,
-     "attaque": 1,
-     "vitesse": 1.5,
-     "poste": "AG"
+      "nom": "",
+      "prenom": "Pif",
+      "surnom": "",
+      "physique": "3",
+      "technique": "0.5",
+      "defense": "3",
+      "intelligence": "1",
+      "attaque": "1",
+      "vitesse": "1.5",
+      "poste 1": "dc",
+      "poste 2": "arg",
+      "poste 3": "alg"
     },
     {
-     "name": "Hercule",
-     "physique": 3,
-     "technique": 0.5,
-     "defense": 3,
-     "intelligence": 1,
-     "attaque": 1,
-     "vitesse": 1.5,
-     "poste": "Pivot"
+      "nom": "",
+      "prenom": "Hercule",
+      "surnom": "",
+      "physique": "3",
+      "technique": "0.5",
+      "defense": "3",
+      "intelligence": "1",
+      "attaque": "1",
+      "vitesse": "1.5",
+      "poste 1": "gk",
+      "poste 2": "",
+      "poste 3": ""
     }
   ]
 }

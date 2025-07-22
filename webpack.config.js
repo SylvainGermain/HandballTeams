@@ -32,6 +32,9 @@ module.exports = (env, argv) => {
         {
           test: /\.(png|svg|jpg|jpeg|gif)$/i,
           type: 'asset/resource',
+          // generator: {
+          //   filename: isProduction ? '[name].[contenthash][ext]' : '[name][ext]'
+          // }
         },
         {
           test: /\.(woff|woff2|eot|ttf|otf)$/i,
