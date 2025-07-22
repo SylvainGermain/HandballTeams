@@ -169,8 +169,17 @@ export class Modal {
       return player.surnom ?? player.prenom ?? player.nom ?? 'Unknown';
     }
 
+    private static getI(input: string | undefined): string {
+      return  input ? input.charAt(0) : '';
+    }
+
     private static getAvatarInitial(player: Player) {
-      return player.surnom?.charAt(0) ?? `${player.nom?.charAt(0)}${player.prenom?.charAt(0)}` ?? 'U';
+      const s = player.nom?.charAt(0);
+      if (s !== undefined) {
+        return s;
+      }
+      const name = `${this.getI(player.prenom)}${this.getI(player.nom)}`
+        return (name.length > 0) ? name : 'U';
     }
 
     private static createPlayer(player: Player): string {
