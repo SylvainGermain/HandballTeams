@@ -37,6 +37,7 @@ interface Player {
     poste: string;
     posteb?: string;
     postec?: string;
+    groupe: string;
 }
 
 export class Modal {
@@ -156,6 +157,12 @@ export class Modal {
         return (name.length > 0) ? name : 'U';
     }
 
+    private static getGroupDiv(player: Player): string {
+      return player.poste === Post.COACH ? ''
+              : ` <div class="flaming player-group">
+                    ${player.groupe}
+                  </div>`;
+    }
     private static createPlayer(player: Player): string {
         return `
             <div class="player-card" style="background-image: url('${backgroundImage}');">
@@ -169,6 +176,9 @@ export class Modal {
                         ${this.getDisplayedName(player)}
                     </h4>
                 </div>
+
+                <!-- Player group - Right of hexagon -->
+                ${this.getGroupDiv(player)}
 
                 <!-- Player Avatar - Center of hexagon -->
                 <div class="player-avatar">

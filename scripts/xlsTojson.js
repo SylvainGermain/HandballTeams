@@ -10,7 +10,6 @@ function convertSheet(sheet, sheetName, outputDir) {
   // Extract field names from the first row of the data, and trim spaces
   const fieldNames = jsonData[0].map(field => {
     const label = String(field).trim().replaceAll(' ','').toLowerCase();
-    console.log('label', label)
     return {
       label: label,
       toUpper: label.includes('post')
@@ -34,7 +33,7 @@ function convertSheet(sheet, sheetName, outputDir) {
   // ]
 // }
   // Create an array of objects with field names and values
-  const jsonArray = dataWithoutHeader.map(row => {
+  let jsonArray = dataWithoutHeader.map(row => {
       const obj = {};
 
       // initialise obj with empty strings
@@ -49,8 +48,12 @@ function convertSheet(sheet, sheetName, outputDir) {
           obj[fieldNames[index].label] = fieldNames[index].toUpper ? v.toUpperCase() : v; // Convert values to strings
         }
       });
-      return obj;
+
+      return Object.entries(obj).length === 0 ? undefined : obj;
   });
+
+  jsonArray = jsonArray.filter( value => value !== null && value !== undefined);
+
   const outputData = { players: jsonArray };
   // Write the JSON data to a file
   fs.writeFileSync(outputFile, JSON.stringify(outputData, null, 2));
