@@ -23,6 +23,8 @@ enum Post {
 }
 // type PostString = "COACH" | "DC" | "ALG" | "ARG" | "GK" | "ALD" | "ARD";
 
+const stats: Array<keyof Player> = ["physique", "technique", "defense", "intelligence", "attaque", "vitesse"];
+
 // Interface for player data
 interface Player {
     nom?: string;
@@ -41,7 +43,7 @@ interface Player {
 }
 
 export class Modal {
-    private static maxStat = 3;
+    private static maxStat = 100;
 
     public static show(team: Team): void {
         this.createModal(team);
@@ -163,9 +165,19 @@ export class Modal {
                     <span>★</span>
                   </div>`;
     }
+
+    private static getOutlineClass(player: Player): string {
+        const level = stats.reduce((acc, stat) => acc + (parseFloat((player as any)[stat as any]) || 0), 0);
+        const maxLevel = stats.length * this.maxStat;
+        return level < maxLevel/3 ? 'outline_bronze'
+        : level > 2*maxLevel/3 ? 'outline_gold' : 'outline_silver';
+    }
+
     private static createPlayer(player: Player): string {
+        const outlineClass = this.getOutlineClass(player);
+
         return `
-            <div class="player-card" style="background-image: url('${backgroundImage}');">
+            <div class="player-card ${outlineClass}" style="background-image: url('${backgroundImage}');">
 
                 <!-- Player Info - Top of hexagon -->
                 <div class="player-info">

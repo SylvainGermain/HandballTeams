@@ -276,6 +276,25 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
     border-left: 4px solid #28a745;
 }
 
+.outline_gold {
+  -webkit-filter: drop-shadow(-5px -5px 5px #ffcf31);
+  filter: drop-shadow(-3px -3px 3px #ffcf31)
+          drop-shadow(5px 5px 5px #a9b0b4);
+}
+
+.outline_silver {
+  -webkit-filter: drop-shadow(-5px -5px 5px #00d9ff);
+  filter: drop-shadow(-3px -3px 3px #00d9ff)
+          drop-shadow(5px 5px 5px #a9b0b4);
+}
+
+.outline_bronze {
+  -webkit-filter: drop-shadow(-5px -5px 5px #1eff00);
+  filter: drop-shadow(-3px -3px 3px #1eff00)
+          drop-shadow(5px 5px 5px #a9b0b4);
+}
+
+
 .players-section {
     max-height: 500px;
     overflow-y: auto;
@@ -300,6 +319,7 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
     background-repeat: no-repeat;
     transition: transform 0.2s ease, filter 0.2s ease;
     cursor: pointer;
+    /* -webkit-filter: drop-shadow(5px 5px 5px #a9b0b4); */
 }
 
 .player-card:hover {
