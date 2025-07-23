@@ -3,6 +3,7 @@ import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import O16PlayersData from '../resources/O16Players.json';
 import backgroundImage from '../resources/background.png';
+import html2canvas from 'html2canvas';
 import './modal.css';
 
 // Interface for team data (importing from main)
@@ -47,6 +48,84 @@ export class Modal {
 
     public static show(team: Team): void {
         this.createModal(team);
+    }
+
+    public static async exportPlayersAsImage(teamId: string): Promise<void> {
+        const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
+        if (!playersSection) {
+            alert('No players section found to export');
+            return;
+        }
+
+        try {
+            // Show a loading indicator
+            const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
+            const originalText = exportBtn.textContent;
+            exportBtn.textContent = 'Exporting...';
+            exportBtn.disabled = true;
+
+            // Store original styles to restore later
+            const originalMaxHeight = playersSection.style.maxHeight;
+            const originalOverflowY = playersSection.style.overflowY;
+            const originalHeight = playersSection.style.height;
+            const originalGridTemplateColumns = playersSection.style.gridTemplateColumns;
+
+            // Temporarily remove scrolling constraints and set fixed grid for capture
+            playersSection.style.maxHeight = 'none';
+            playersSection.style.overflowY = 'visible';
+            playersSection.style.height = 'auto';
+            playersSection.style.gridTemplateColumns = 'repeat(4, 1fr)'; // Fixed 4 columns for export
+
+            // Wait a moment for the layout to update
+            await new Promise(resolve => setTimeout(resolve, 100));
+
+            // Create canvas from the players section
+            const canvas = await html2canvas(playersSection, {
+                backgroundColor: '#f8f9fa',
+                scale: 2, // Higher quality
+                useCORS: true,
+                allowTaint: true,
+                width: playersSection.scrollWidth,
+                height: playersSection.scrollHeight,
+                scrollX: 0,
+                scrollY: 0
+            });
+
+            // Restore original styles
+            playersSection.style.maxHeight = originalMaxHeight;
+            playersSection.style.overflowY = originalOverflowY;
+            playersSection.style.height = originalHeight;
+            playersSection.style.gridTemplateColumns = originalGridTemplateColumns;
+
+            // Convert to blob and download
+            canvas.toBlob((blob) => {
+                if (blob) {
+                    const url = URL.createObjectURL(blob);
+                    const link = document.createElement('a');
+                    link.download = `${teamId}_players_${new Date().toISOString().split('T')[0]}.jpeg`;
+                    link.href = url;
+                    document.body.appendChild(link);
+                    link.click();
+                    document.body.removeChild(link);
+                    URL.revokeObjectURL(url);
+                }
+
+                // Reset button
+                exportBtn.textContent = originalText;
+                exportBtn.disabled = false;
+            }, 'image/jpeg', 0.9);
+
+        } catch (error) {
+            console.error('Error exporting players:', error);
+            alert('Failed to export players image. Please try again.');
+
+            // Reset button on error
+            const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
+            if (exportBtn) {
+                exportBtn.textContent = '📸 Export Players as JPEG';
+                exportBtn.disabled = false;
+            }
+        }
     }
 
     private static createModal(team: Team): void {
@@ -123,7 +202,7 @@ export class Modal {
           players = O16PlayersData.players;
         }
 
-        const playersSection = this.createPlayersSection(players);
+        const playersSection = this.createPlayersSection(players, team);
 
         let playersCount = players.reduce((count, player) => {
             return count + (player.poste != Post.COACH ? 1 : 0);
@@ -295,7 +374,7 @@ export class Modal {
 
         return starsHtml;
     }
-    private static createPlayersSection(players: Player[]): string {
+    private static createPlayersSection(players: Player[], team: Team): string {
         // Split players into coaches and regular players
         const coaches = players.filter(player => player.poste === Post.COACH);
         const regularPlayers = players.filter(player => player.poste !== Post.COACH);
@@ -327,8 +406,13 @@ export class Modal {
         if (regularPlayers.length > 0) {
             playersHTML += `
                 <div>
-                    <h4 class="section-heading">Players</h4>
-                    <div class="players-section">
+                    <div class="players-header">
+                        <h4 class="section-heading">Players</h4>
+                        <button class="export-btn btn-export" onclick="Modal.exportPlayersAsImage('${team.id}')">
+                            📸 Export Players as JPEG
+                        </button>
+                    </div>
+                    <div class="players-section" id="players-section-${team.id}">
             `;
 
             regularPlayers.forEach((player: Player) => {
@@ -360,5 +444,8 @@ export class Modal {
         }, 200);
     }
 }
+
+// Make Modal available globally for onclick handlers
+(window as any).Modal = Modal;
 
 export type { Team };
