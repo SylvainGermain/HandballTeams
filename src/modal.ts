@@ -173,6 +173,46 @@ export class Modal {
         : level > 2*maxLevel/3 ? 'outline_gold' : 'outline_silver';
     }
 
+    private static getSinglePosteLabel(poste1: string) {
+      return `<div class="player-position">
+                ${poste1}
+              </div>`;
+    }
+    private static getDualPosteLabel(poste1: string, poste2: string) {
+      return `<div class="player-position">
+                ${poste1}
+              </div>
+              <div class="player-position">
+                ${poste2}
+              </div>`;
+    }
+    private static getTriplePosteLabel(poste1: string, poste2: string, poste3: string) {
+      return `<div class="post-grid3">
+                <div class="player-position">
+                  ${poste1}
+                </div>
+                <div class="player-position">
+                  ${poste2}
+                </div>
+                <div class="player-position">
+                  ${poste3}
+                </div>
+              </div>`;
+    }
+    private static getPosteLabel(player: Player): string {
+      const postes = [player.poste];
+      player.posteb ? postes.push(player.posteb) : null;
+      player.postec ? postes.push(player.postec) : null;
+
+      if (postes.length === 1) {
+        return this.getSinglePosteLabel(postes[0]);
+      } else if (postes.length === 2) {
+        return this.getDualPosteLabel(postes[0], postes[1]);
+      } else if (postes.length === 3) {
+        return this.getTriplePosteLabel(postes[0], postes[1], postes[2]);
+      }
+      return '';
+    }
     private static createPlayer(player: Player): string {
         const outlineClass = this.getOutlineClass(player);
 
@@ -181,9 +221,7 @@ export class Modal {
 
                 <!-- Player Info - Top of hexagon -->
                 <div class="player-info">
-                    <div class="player-position">
-                        ${player.poste}
-                    </div>
+                    ${this.getPosteLabel(player)}
                     <h4 class="player-name">
                         ${this.getDisplayedName(player)}
                     </h4>

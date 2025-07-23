@@ -1,38 +1,46 @@
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: 20px;
+    padding: clamp(10px, 3vw, 20px);
     background-color: #f4f4f4;
+    box-sizing: border-box;
+}
+
+* {
+    box-sizing: border-box;
 }
 
 .container {
     max-width: 1200px;
     margin: 0 auto;
     background-color: white;
-    padding: 20px;
+    padding: clamp(15px, 4vw, 20px);
     border-radius: 8px;
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    width: 100%;
 }
 
 h1 {
     color: #333;
     text-align: center;
     margin-bottom: 30px;
+    font-size: clamp(1.5rem, 4vw, 2.5rem);
 }
 
 .team-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(400px, 2fr));
-    gap: 20px;
+    grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
+    gap: clamp(15px, 3vw, 20px);
     margin-top: 20px;
 }
 
 .team-card {
     background-color: #f8f9fa;
-    padding: 20px;
+    padding: clamp(15px, 4vw, 20px);
     border-radius: 6px;
     border: 1px solid #e9ecef;
     transition: transform 0.2s ease-in-out;
+    width: 100%;
 }
 
 .team-card:hover {
@@ -43,31 +51,37 @@ h1 {
 .team-card h3 {
     color: #007bff;
     margin-top: 0;
+    font-size: clamp(1.1rem, 3vw, 1.3rem);
 }
 
 .team-card p {
     color: #666;
     line-height: 1.6;
+    font-size: clamp(0.85rem, 2.5vw, 1rem);
 }
 
 .stats {
     display: flex;
     justify-content: space-between;
     margin-top: 15px;
+    flex-wrap: wrap;
+    gap: 10px;
 }
 
 .stat {
     text-align: center;
+    flex: 1;
+    min-width: 100px;
 }
 
 .stat-number {
-    font-size: 24px;
+    font-size: clamp(1.2rem, 4vw, 1.5rem);
     font-weight: bold;
     color: #28a745;
 }
 
 .stat-label {
-    font-size: 12px;
+    font-size: clamp(10px, 2vw, 12px);
     color: #666;
     text-transform: uppercase;
 }
@@ -76,12 +90,14 @@ h1 {
     background-color: #28a745;
     color: white;
     border: none;
-    padding: 10px 20px;
+    padding: clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px);
     border-radius: 4px;
     cursor: pointer;
-    font-size: 14px;
+    font-size: clamp(12px, 2.5vw, 14px);
     margin: 5px;
     transition: background-color 0.2s;
+    width: 100%;
+    max-width: 200px;
 }
 
 .btn:hover {
@@ -92,21 +108,62 @@ h1 {
     text-align: center;
     padding: 20px;
     color: #666;
+    font-size: clamp(0.9rem, 2.5vw, 1rem);
 }
 
-@media (max-width: 768px) {
+/* Mobile Portrait */
+@media (max-width: 768px) and (orientation: portrait) {
+    body {
+        padding: 10px;
+    }
+
+    .container {
+        padding: 15px;
+    }
+
     .team-grid {
         grid-template-columns: 1fr;
+        gap: 15px;
     }
 
     .stats {
         flex-direction: column;
-        gap: 10px;
+        gap: 8px;
     }
 
     .stat {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        padding: 5px 0;
+    }
+
+    .btn {
+        padding: 12px 20px;
+        font-size: 14px;
+        margin: 8px 0;
+    }
+}
+
+/* Mobile Landscape */
+@media (max-width: 768px) and (orientation: landscape) {
+    .container {
+        padding: 10px 15px;
+    }
+
+    .team-grid {
+        grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+        gap: 15px;
+    }
+
+    .stats {
+        justify-content: space-around;
+    }
+}
+
+/* Tablet */
+@media (min-width: 769px) and (max-width: 1024px) {
+    .team-grid {
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
     }
 }
