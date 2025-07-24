@@ -4,6 +4,8 @@ import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import O16PlayersData from '../resources/O16Players.json';
 import { Player, Post, Team, TeamComposition } from './model';
+import { PlayerHelper } from './player';
+import { ExportHelper } from './export';
 
 
 // enum Post {
@@ -27,6 +29,7 @@ export class TeamCompositionModal {
             meetingPlace: ''
         },
         majorPlayers: {
+            [Post.COACH]: null,
             [Post.GK]: null,
             [Post.PIV]: null,
             [Post.DC]: null,
@@ -35,7 +38,13 @@ export class TeamCompositionModal {
             [Post.ALD]: null,
             [Post.ARD]: null
         },
-        substitutes: []
+        substitutes: [
+            {} as Player,
+            {} as Player,
+            {} as Player,
+            {} as Player,
+            {} as Player
+        ]
     };
 
     public static show(team: Team): void {
@@ -54,6 +63,7 @@ export class TeamCompositionModal {
                 meetingPlace: ''
             },
             majorPlayers: {
+                [Post.COACH]: null,
                 [Post.GK]: null,
                 [Post.PIV]: null,
                 [Post.DC]: null,
@@ -62,7 +72,13 @@ export class TeamCompositionModal {
                 [Post.ALD]: null,
                 [Post.ARD]: null
             },
-            substitutes: []
+            substitutes: [
+                {} as Player,
+                {} as Player,
+                {} as Player,
+                {} as Player,
+                {} as Player
+            ]
         };
     }
 
@@ -126,9 +142,9 @@ export class TeamCompositionModal {
         if (this.currentStep === 1) {
             content = this.createMatchInfoStep();
         } else if (this.currentStep === 2) {
-            content = this.createMajorPlayersStep(team);
+            content = this.createTeamSelectionStep(team);
         } else if (this.currentStep === 3) {
-            content = this.createSubstitutesStep(team);
+            content = this.createSummaryStep();
         }
 
         return `
@@ -147,11 +163,11 @@ export class TeamCompositionModal {
                 </div>
                 <div class="step ${this.currentStep >= 2 ? 'active' : ''} ${this.currentStep > 2 ? 'completed' : ''}">
                     <span class="step-number">2</span>
-                    <span class="step-label">Major Players</span>
+                    <span class="step-label">Team Selection</span>
                 </div>
                 <div class="step ${this.currentStep >= 3 ? 'active' : ''}">
                     <span class="step-number">3</span>
-                    <span class="step-label">Substitutes</span>
+                    <span class="step-label">Summary</span>
                 </div>
             </div>
         `;
@@ -164,25 +180,25 @@ export class TeamCompositionModal {
                 <form class="match-info-form">
                     <div class="form-group">
                         <label for="opposite-team">Opposite Team:</label>
-                        <input type="text" id="opposite-team" value="${this.teamComposition.matchInfo.oppositeTeam}" required>
+                        <input type="text" id="opposite-team" value="${this.teamComposition.matchInfo.oppositeTeam}" placeholder="Enter opponent team name">
                     </div>
                     <div class="form-group">
                         <label for="location">Location:</label>
-                        <input type="text" id="location" value="${this.teamComposition.matchInfo.location}" required>
+                        <input type="text" id="location" value="${this.teamComposition.matchInfo.location}" placeholder="Enter match location">
                     </div>
                     <div class="form-row">
                         <div class="form-group">
                             <label for="match-date">Date:</label>
-                            <input type="date" id="match-date" value="${this.teamComposition.matchInfo.date}" required>
+                            <input type="date" id="match-date" value="${this.teamComposition.matchInfo.date}">
                         </div>
                         <div class="form-group">
                             <label for="match-time">Time:</label>
-                            <input type="time" id="match-time" value="${this.teamComposition.matchInfo.time}" required>
+                            <input type="time" id="match-time" value="${this.teamComposition.matchInfo.time}">
                         </div>
                     </div>
                     <div class="form-group">
                         <label for="meeting-place">Meeting Place:</label>
-                        <input type="text" id="meeting-place" value="${this.teamComposition.matchInfo.meetingPlace}" required>
+                        <input type="text" id="meeting-place" value="${this.teamComposition.matchInfo.meetingPlace}" placeholder="Enter meeting location">
                     </div>
                 </form>
                 <div class="step-actions">
@@ -192,33 +208,187 @@ export class TeamCompositionModal {
         `;
     }
 
-    private static createMajorPlayersStep(team: Team): string {
+    private static createTeamSelectionStep(team: Team): string {
         const players = this.getPlayersData(team.id);
-        const availablePlayers = players.filter(p => p.poste !== 'COACH');
+        const coachPlayers = players.filter(p => p.poste === 'COACH');
+        const fieldPlayers = players.filter(p => p.poste !== 'COACH');
 
+        // Get all already selected major players (excluding current position)
+        const getSelectedMajorPlayers = (excludePosition?: string) => {
+            return Object.entries(this.teamComposition.majorPlayers)
+                .filter(([pos, player]) => player !== null && pos !== excludePosition)
+                .map(([_, player]) => this.getDisplayedName(player!));
+        };
+
+        // Major Players Section
         const positionsHTML = Object.values(Post).map(position => {
             const selectedPlayer = this.teamComposition.majorPlayers[position];
+            const alreadySelectedMajors = getSelectedMajorPlayers(position);
+
+            if (position === 'COACH') {
+                // Use coach players for COACH position, excluding already selected ones
+                const availablePlayersForPosition = coachPlayers.filter(player =>
+                    !alreadySelectedMajors.includes(this.getDisplayedName(player))
+                );
+                return `
+                    <div class="position-selection">
+                        <h4>${position}</h4>
+                        <select id="position-${position}" class="player-select">
+                            <option value="">Select Player</option>
+                            ${availablePlayersForPosition.map(player => {
+                                const displayName = this.getDisplayedName(player);
+                                const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
+                                return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName}</option>`;
+                            }).join('')}
+                        </select>
+                    </div>
+                `;
+            } else {
+                // For field positions, sort players by position with current position first, excluding already selected
+                const currentPositionPlayers = fieldPlayers.filter(p =>
+                    (p.poste === position || p.posteb === position || p.postec === position) &&
+                    !alreadySelectedMajors.includes(this.getDisplayedName(p))
+                );
+                const otherPositionPlayers = fieldPlayers.filter(p =>
+                    (p.poste !== position && p.posteb !== position && p.postec !== position) &&
+                    !alreadySelectedMajors.includes(this.getDisplayedName(p))
+                ).sort((a, b) => {
+                    // Sort other players by their primary position
+                    if (a.poste < b.poste) return -1;
+                    if (a.poste > b.poste) return 1;
+                    return 0;
+                });
+
+                const sortedPlayers = [...currentPositionPlayers, ...otherPositionPlayers];
+
+                return `
+                    <div class="position-selection">
+                        <h4>${position}</h4>
+                        <select id="position-${position}" class="player-select">
+                            <option value="">Select Player</option>
+                            ${currentPositionPlayers.length > 0 ? `<optgroup label="--- ${position} Players ---">` : ''}
+                            ${currentPositionPlayers.map(player => {
+                                const displayName = this.getDisplayedName(player);
+                                const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
+                                return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName} (${player.poste}${player.posteb ? '/' + player.posteb : ''}${player.postec ? '/' + player.postec : ''})</option>`;
+                            }).join('')}
+                            ${currentPositionPlayers.length > 0 ? '</optgroup>' : ''}
+                            ${otherPositionPlayers.length > 0 && currentPositionPlayers.length > 0 ? '<optgroup label="--- Other Players ---">' : ''}
+                            ${otherPositionPlayers.map(player => {
+                                const displayName = this.getDisplayedName(player);
+                                const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
+                                return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName} (${player.poste}${player.posteb ? '/' + player.posteb : ''}${player.postec ? '/' + player.postec : ''})</option>`;
+                            }).join('')}
+                            ${otherPositionPlayers.length > 0 && currentPositionPlayers.length > 0 ? '</optgroup>' : ''}
+                            ${currentPositionPlayers.length === 0 ? sortedPlayers.map(player => {
+                                const displayName = this.getDisplayedName(player);
+                                const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
+                                return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName} (${player.poste}${player.posteb ? '/' + player.posteb : ''}${player.postec ? '/' + player.postec : ''})</option>`;
+                            }).join('') : ''}
+                        </select>
+                    </div>
+                `;
+            }
+        }).join('');
+
+        // Get players not selected as majors for substitutes (only field players, no coaches)
+        const majorPlayerNames = Object.values(this.teamComposition.majorPlayers)
+            .filter(player => player !== null)
+            .map(player => this.getDisplayedName(player!));
+
+        const availableForSubstitutes = fieldPlayers.filter(player =>
+            !majorPlayerNames.includes(this.getDisplayedName(player))
+        );
+
+        // Get already selected substitutes (excluding current index)
+        const getSelectedSubstitutes = (excludeIndex?: number) => {
+            return this.teamComposition.substitutes
+                .map((sub, idx) => ({ player: sub, index: idx }))
+                .filter(({ player, index }) =>
+                    player && this.getDisplayedName(player) && index !== excludeIndex
+                )
+                .map(({ player }) => this.getDisplayedName(player));
+        };
+
+        // Substitutes Section
+        const substitutesHTML = this.teamComposition.substitutes.map((player, index) => {
+            const displayName = this.getDisplayedName(player);
+            const alreadySelectedSubstitutes = getSelectedSubstitutes(index);
+
+            // Filter out already selected substitutes from available players
+            const availableForThisSubstitute = availableForSubstitutes.filter(p =>
+                !alreadySelectedSubstitutes.includes(this.getDisplayedName(p))
+            );
+
+            // Sort available substitutes by position
+            const sortedAvailableForSubstitutes = availableForThisSubstitute.sort((a, b) => {
+                if (a.poste < b.poste) return -1;
+                if (a.poste > b.poste) return 1;
+                return 0;
+            });
+
             return `
-                <div class="position-selection">
-                    <h4>${position}</h4>
-                    <select id="position-${position}" class="player-select">
-                        <option value="">Select Player</option>
-                        ${availablePlayers.map(player => {
-                            const displayName = this.getDisplayedName(player);
-                            const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
-                            return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName}</option>`;
+                <div class="substitute-selection">
+                    <select class="substitute-select" data-index="${index}">
+                        <option value="">Select Substitute ${index + 1}</option>
+                        ${sortedAvailableForSubstitutes.map(p => {
+                            const pDisplayName = this.getDisplayedName(p);
+                            return `<option value="${pDisplayName}" ${pDisplayName === displayName ? 'selected' : ''}>${pDisplayName} (${p.poste}${p.posteb ? '/' + p.posteb : ''}${p.postec ? '/' + p.postec : ''})</option>`;
                         }).join('')}
                     </select>
+                    ${index >= 5 ? `<button class="btn btn-remove" onclick="TeamCompositionModal.removeSubstitute(${index})">Remove</button>` : ''}
                 </div>
             `;
         }).join('');
 
         return `
             <div class="step-content">
-                <h3>Select Major Players (7 positions)</h3>
-                <div class="positions-grid">
-                    ${positionsHTML}
+                <div class="match-summary">
+                    <h3>Match Summary</h3>
+                    <div class="match-summary-grid">
+                        <div class="summary-item">
+                            <span class="summary-label">Opposite Team:</span>
+                            <span class="summary-value">${this.teamComposition.matchInfo.oppositeTeam || 'TBD'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Location:</span>
+                            <span class="summary-value">${this.teamComposition.matchInfo.location || 'TBD'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Date:</span>
+                            <span class="summary-value">${this.teamComposition.matchInfo.date || 'TBD'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Time:</span>
+                            <span class="summary-value">${this.teamComposition.matchInfo.time || 'TBD'}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Meeting Place:</span>
+                            <span class="summary-value">${this.teamComposition.matchInfo.meetingPlace || 'TBD'}</span>
+                        </div>
+                    </div>
                 </div>
+
+                <div class="team-selection-container">
+                    <div class="major-players-section">
+                        <h3>Major Players (8 positions including Coach)</h3>
+                        <div class="positions-grid">
+                            ${positionsHTML}
+                        </div>
+                    </div>
+
+                    <div class="substitutes-section">
+                        <h3>Substitutes (5 base positions + up to 2 additional)</h3>
+                        <div class="substitutes-container">
+                            ${substitutesHTML}
+                            ${this.teamComposition.substitutes.length < 7 ?
+                                '<button class="btn btn-add" id="add-substitute-btn">Add Additional Substitute</button>' :
+                                '<p class="max-substitutes">Maximum substitutes reached (7)</p>'
+                            }
+                        </div>
+                    </div>
+                </div>
+
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
@@ -227,47 +397,84 @@ export class TeamCompositionModal {
         `;
     }
 
-    private static createSubstitutesStep(team: Team): string {
-        const players = this.getPlayersData(team.id);
-        const availablePlayers = players.filter(p => p.poste !== 'COACH');
+    private static createSummaryStep(): string {
+        // Get selected major players (excluding coach)
+        const majorPlayers = Object.entries(this.teamComposition.majorPlayers)
+            .filter(([position, player]) => position !== 'COACH' && player !== null)
+            .map(([_, player]) => player!);
 
-        // Get players not selected as majors
-        const majorPlayerNames = Object.values(this.teamComposition.majorPlayers)
-            .filter(player => player !== null)
-            .map(player => this.getDisplayedName(player!));
+        // Get selected coach
+        const coach = this.teamComposition.majorPlayers[Post.COACH];
 
-        const availableForSubstitutes = availablePlayers.filter(player =>
-            !majorPlayerNames.includes(this.getDisplayedName(player))
+        // Get selected substitutes (only non-empty ones)
+        const substitutes = this.teamComposition.substitutes.filter(player =>
+            player && this.getDisplayedName(player) && this.getDisplayedName(player) !== 'Unknown'
         );
 
-        const substitutesHTML = this.teamComposition.substitutes.map((player, index) => {
-            const displayName = this.getDisplayedName(player);
-            return `
-                <div class="substitute-selection">
-                    <select class="substitute-select" data-index="${index}">
-                        <option value="">Select Substitute ${index + 1}</option>
-                        ${availableForSubstitutes.map(p => {
-                            const pDisplayName = this.getDisplayedName(p);
-                            return `<option value="${pDisplayName}" ${pDisplayName === displayName ? 'selected' : ''}>${pDisplayName}</option>`;
-                        }).join('')}
-                    </select>
-                    <button class="btn btn-remove" onclick="TeamCompositionModal.removeSubstitute(${index})">Remove</button>
-                </div>
-            `;
-        }).join('');
+        // Generate player cards using PlayerHelper
+        const majorPlayersHTML = majorPlayers.map(player => PlayerHelper.createPlayer(player)).join('');
+        const substitutesHTML = substitutes.map(player => PlayerHelper.createPlayer(player)).join('');
+        const coachHTML = coach ? PlayerHelper.createPlayer(coach) : '';
 
         return `
-            <div class="step-content">
-                <h3>Select Substitutes (up to 7 players)</h3>
-                <div class="substitutes-container">
-                    ${substitutesHTML}
-                    ${this.teamComposition.substitutes.length < 7 ?
-                        '<button class="btn btn-add" id="add-substitute-btn">Add Substitute</button>' :
-                        '<p class="max-substitutes">Maximum substitutes reached (7)</p>'
-                    }
+            <div class="step-content summary-content">
+                <h1 class="match-day-title">Match Day</h1>
+                <h2 class="match-title">Montigny vs ${this.teamComposition.matchInfo.oppositeTeam || 'TBD'}</h2>
+
+                <div class="players-summary">
+                    ${majorPlayers.length > 0 ? `
+                        <div class="section-wrapper">
+                            <h3 class="section-heading">Major Players (${majorPlayers.length})</h3>
+                            <div class="players-section">
+                                ${majorPlayersHTML}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${substitutes.length > 0 ? `
+                        <div class="section-wrapper">
+                            <h3 class="section-heading">Substitutes (${substitutes.length})</h3>
+                            <div class="players-section">
+                                ${substitutesHTML}
+                            </div>
+                        </div>
+                    ` : ''}
+
+                    ${coach ? `
+                        <div class="section-wrapper">
+                            <h3 class="section-heading">Coach</h3>
+                            <div class="coaching-staff-section">
+                                ${coachHTML}
+                            </div>
+                        </div>
+                    ` : ''}
                 </div>
+
+                <div class="match-details">
+                    <h3>Match Details</h3>
+                    <div class="match-details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${this.teamComposition.matchInfo.date || 'TBD'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Time:</span>
+                            <span class="detail-value">${this.teamComposition.matchInfo.time || 'TBD'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Location:</span>
+                            <span class="detail-value">${this.teamComposition.matchInfo.location || 'TBD'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Meeting Place:</span>
+                            <span class="detail-value">${this.teamComposition.matchInfo.meetingPlace || 'TBD'}</span>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <button class="export-btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
                     <button class="btn btn-success" id="finish-composition-btn">Finish Composition</button>
                 </div>
             </div>
@@ -291,6 +498,12 @@ export class TeamCompositionModal {
         const finishBtn = document.getElementById('finish-composition-btn');
         if (finishBtn) {
             finishBtn.addEventListener('click', () => this.finishComposition());
+        }
+
+        // Export summary button
+        const exportBtn = document.getElementById('export-summary-btn');
+        if (exportBtn) {
+            exportBtn.addEventListener('click', () => this.exportSummaryAsImage());
         }
 
         // Add substitute button
@@ -343,16 +556,7 @@ export class TeamCompositionModal {
     }
 
     private static validateMatchInfo(): boolean {
-        const oppositeTeam = (document.getElementById('opposite-team') as HTMLInputElement).value;
-        const location = (document.getElementById('location') as HTMLInputElement).value;
-        const date = (document.getElementById('match-date') as HTMLInputElement).value;
-        const time = (document.getElementById('match-time') as HTMLInputElement).value;
-        const meetingPlace = (document.getElementById('meeting-place') as HTMLInputElement).value;
-
-        if (!oppositeTeam || !location || !date || !time || !meetingPlace) {
-            alert('Please fill in all match information fields.');
-            return false;
-        }
+        // Allow proceeding without filling match details - they will show as 'TBD' in summary
         return true;
     }
 
@@ -360,8 +564,8 @@ export class TeamCompositionModal {
         const selectedCount = Object.values(this.teamComposition.majorPlayers)
             .filter(player => player !== null).length;
 
-        if (selectedCount < 7) {
-            alert('Please select all 7 major players.');
+        if (selectedCount < 8) {
+            alert('Please select all 8 major players (including coach).');
             return false;
         }
         return true;
@@ -369,11 +573,11 @@ export class TeamCompositionModal {
 
     private static saveMatchInfo(): void {
         this.teamComposition.matchInfo = {
-            oppositeTeam: (document.getElementById('opposite-team') as HTMLInputElement).value,
-            location: (document.getElementById('location') as HTMLInputElement).value,
-            date: (document.getElementById('match-date') as HTMLInputElement).value,
-            time: (document.getElementById('match-time') as HTMLInputElement).value,
-            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value
+            oppositeTeam: (document.getElementById('opposite-team') as HTMLInputElement).value || 'TBD',
+            location: (document.getElementById('location') as HTMLInputElement).value || 'TBD',
+            date: (document.getElementById('match-date') as HTMLInputElement).value || 'TBD',
+            time: (document.getElementById('match-time') as HTMLInputElement).value || 'TBD',
+            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD'
         };
     }
 
@@ -381,6 +585,8 @@ export class TeamCompositionModal {
         const players = this.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
         this.teamComposition.majorPlayers[position] = player || null;
+        // Update modal content to refresh dropdown lists and exclude selected players
+        this.updateModalContent(team);
     }
 
     private static updateSubstitute(index: number, playerName: string, team: Team): void {
@@ -388,30 +594,52 @@ export class TeamCompositionModal {
         const player = players.find(p => this.getDisplayedName(p) === playerName);
         if (player) {
             this.teamComposition.substitutes[index] = player;
+        } else {
+            this.teamComposition.substitutes[index] = {} as Player;
         }
+        // Update modal content to refresh dropdown lists and exclude selected players
+        this.updateModalContent(team);
     }
 
     public static addSubstitute(team: Team): void {
         if (this.teamComposition.substitutes.length < 7) {
-            // Add empty slot
+            // Add empty slot for additional substitutes (beyond the 5 base positions)
             this.teamComposition.substitutes.push({} as Player);
             this.updateModalContent(team);
         }
     }
 
     public static removeSubstitute(index: number): void {
-        this.teamComposition.substitutes.splice(index, 1);
-        // Force a page refresh to update the UI - in a real app you'd want better state management
-        const modal = document.querySelector('.composition-modal-overlay');
-        if (modal) {
-            modal.remove();
+        // Only allow removing additional substitutes (index >= 5), not the base 5 positions
+        if (index >= 5) {
+            this.teamComposition.substitutes.splice(index, 1);
+            // Force a page refresh to update the UI - in a real app you'd want better state management
+            const modal = document.querySelector('.composition-modal-overlay');
+            if (modal) {
+                modal.remove();
+            }
         }
     }
 
     private static finishComposition(): void {
+        // Since validation is now done in step 2 transition, we can directly finish
         console.log('Team Composition Complete:', this.teamComposition);
         alert('Team composition saved successfully!');
         this.closeModal(document.querySelector('.composition-modal-overlay') as HTMLElement);
+    }
+
+    public static async exportSummaryAsImage(): Promise<void> {
+        const summarySection = document.querySelector('.summary-content') as HTMLElement;
+
+        if (!summarySection) {
+            alert('No summary section found to export');
+            return;
+        }
+
+        const teamName = this.teamComposition.matchInfo.oppositeTeam || 'TBD';
+        const fileName = `match-summary-montigny-vs-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
+
+        return ExportHelper.exportSummaryAsImage(summarySection, fileName);
     }
 
     private static updateModalContent(team: Team): void {

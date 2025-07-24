@@ -1,6 +1,6 @@
 import './styles.css';
 import teamsData from '../resources/teams.json';
-import { Modal} from './modal';
+import { TeamDetailsModal} from './modal';
 import { type Team } from './model';
 import { TeamCompositionModal } from './teamComposition';
 
@@ -52,7 +52,7 @@ class HandballTeamsApp {
     private showTeamDetails(teamId: string): void {
         const team = this.teams.find(t => t.id === teamId);
         if (team) {
-            Modal.show(team);
+            TeamDetailsModal.show(team);
         }
     }
 

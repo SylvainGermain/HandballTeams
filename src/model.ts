@@ -24,13 +24,13 @@ export interface Team {
 
 export enum Post {
   COACH = "COACH",
+  GK = "GK",
+  PIV = 'PIV',
+  ARG = "ARG",
+  ARD = "ARD",
   DC = "DC",
   ALG = "ALG",
-  ARG = "ARG",
-  GK = "GK",
   ALD = "ALD",
-  ARD = "ARD",
-  PIV = 'PIV',
 }
 // type PostString = "COACH" | "DC" | "ALG" | "ARG" | "GK" | "ALD" | "ARD";
 

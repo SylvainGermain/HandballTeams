@@ -8,7 +8,7 @@ import { Player, Post, Team } from './model';
 import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
 
-export class Modal {
+export class TeamDetailsModal {
 
     public static show(team: Team): void {
         this.createModal(team);
@@ -152,7 +152,7 @@ export class Modal {
                 <div>
                     <div class="players-header">
                         <h4 class="section-heading">Players</h4>
-                        <button class="export-btn btn-export" onclick="Modal.exportPlayersAsImage('${team.id}')">
+                        <button class="export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
                             📸 Export Players as JPEG
                         </button>
                     </div>
@@ -189,7 +189,7 @@ export class Modal {
     }
 }
 
-// Make Modal available globally for onclick handlers
-(window as any).Modal = Modal;
+// Make TeamDetailsModal available globally for onclick handlers
+(window as any).TeamDetailsModal = TeamDetailsModal;
 
 export type { Team };
