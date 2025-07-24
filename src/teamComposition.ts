@@ -50,6 +50,7 @@ export class TeamCompositionModal {
     public static show(team: Team): void {
         this.currentStep = 1;
         this.resetComposition();
+        this.loadFromCookie(team);
         this.createModal(team);
     }
 
@@ -80,6 +81,103 @@ export class TeamCompositionModal {
                 {} as Player
             ]
         };
+    }
+
+    private static saveToCookie(team: Team): void {
+        try {
+            const cookieData = {
+                teamId: team.id,
+                majorPlayers: {} as { [key: string]: string | null },
+                substitutes: [] as string[]
+            };
+
+            // Save major players (store by name for easier lookup)
+            Object.entries(this.teamComposition.majorPlayers).forEach(([position, player]) => {
+                cookieData.majorPlayers[position] = player ? this.getDisplayedName(player) : null;
+            });
+
+            // Save substitutes (store by name)
+            cookieData.substitutes = this.teamComposition.substitutes.map(player =>
+                player && (player.nom || player.prenom) ? this.getDisplayedName(player) : ''
+            );
+
+            // Store in cookie with team-specific key, expires in 30 days
+            const expirationDate = new Date();
+            expirationDate.setDate(expirationDate.getDate() + 30);
+            document.cookie = `teamComposition_${team.id}=${JSON.stringify(cookieData)}; expires=${expirationDate.toUTCString()}; path=/`;
+        } catch (error) {
+            console.warn('Failed to save team composition to cookie:', error);
+        }
+    }
+
+    private static loadFromCookie(team: Team): void {
+        try {
+            const cookieName = `teamComposition_${team.id}`;
+            const cookies = document.cookie.split(';');
+            let cookieData = null;
+
+            // Find the cookie for this team
+            for (const cookie of cookies) {
+                const [name, value] = cookie.trim().split('=');
+                if (name === cookieName && value) {
+                    cookieData = JSON.parse(decodeURIComponent(value));
+                    break;
+                }
+            }
+
+            if (!cookieData) return;
+
+            const players = this.getPlayersData(team.id);
+
+            // Load major players
+            Object.entries(cookieData.majorPlayers || {}).forEach(([position, playerName]) => {
+                if (playerName) {
+                    const player = players.find(p => this.getDisplayedName(p) === playerName);
+                    if (player) {
+                        this.teamComposition.majorPlayers[position] = player;
+                    }
+                }
+            });
+
+            // Load substitutes
+            if (cookieData.substitutes && Array.isArray(cookieData.substitutes)) {
+                cookieData.substitutes.forEach((playerName: string, index: number) => {
+                    if (playerName && index < this.teamComposition.substitutes.length) {
+                        const player = players.find(p => this.getDisplayedName(p) === playerName);
+                        if (player) {
+                            this.teamComposition.substitutes[index] = player;
+                        }
+                    }
+                });
+
+                // If there were more substitutes saved than the default 5, extend the array
+                if (cookieData.substitutes.length > 5) {
+                    for (let i = 5; i < cookieData.substitutes.length; i++) {
+                        if (cookieData.substitutes[i]) {
+                            const player = players.find(p => this.getDisplayedName(p) === cookieData.substitutes[i]);
+                            if (player) {
+                                this.teamComposition.substitutes[i] = player;
+                            } else {
+                                this.teamComposition.substitutes[i] = {} as Player;
+                            }
+                        } else {
+                            this.teamComposition.substitutes[i] = {} as Player;
+                        }
+                    }
+                }
+            }
+        } catch (error) {
+            console.warn('Failed to load team composition from cookie:', error);
+        }
+    }
+
+    private static clearCookie(team: Team): void {
+        try {
+            // Remove the cookie by setting it to expire in the past
+            document.cookie = `teamComposition_${team.id}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
+        } catch (error) {
+            console.warn('Failed to clear team composition cookie:', error);
+        }
     }
 
     private static createModal(team: Team): void {
@@ -391,6 +489,7 @@ export class TeamCompositionModal {
 
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <button class="btn btn-warning" id="clear-saved-btn" title="Clear all saved player selections">🗑️ Clear Saved Data</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
                 </div>
             </div>
@@ -512,6 +611,12 @@ export class TeamCompositionModal {
             addSubBtn.addEventListener('click', () => this.addSubstitute(team));
         }
 
+        // Clear saved data button
+        const clearBtn = document.getElementById('clear-saved-btn');
+        if (clearBtn) {
+            clearBtn.addEventListener('click', () => this.clearSavedData(team));
+        }
+
         // Player selection for major positions
         const playerSelects = document.querySelectorAll('.player-select');
         playerSelects.forEach(select => {
@@ -585,6 +690,8 @@ export class TeamCompositionModal {
         const players = this.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
         this.teamComposition.majorPlayers[position] = player || null;
+        // Save to cookie whenever a player is updated
+        this.saveToCookie(team);
         // Update modal content to refresh dropdown lists and exclude selected players
         this.updateModalContent(team);
     }
@@ -597,6 +704,8 @@ export class TeamCompositionModal {
         } else {
             this.teamComposition.substitutes[index] = {} as Player;
         }
+        // Save to cookie whenever a substitute is updated
+        this.saveToCookie(team);
         // Update modal content to refresh dropdown lists and exclude selected players
         this.updateModalContent(team);
     }
@@ -605,7 +714,23 @@ export class TeamCompositionModal {
         if (this.teamComposition.substitutes.length < 7) {
             // Add empty slot for additional substitutes (beyond the 5 base positions)
             this.teamComposition.substitutes.push({} as Player);
+            // Save to cookie when adding a substitute slot
+            this.saveToCookie(team);
             this.updateModalContent(team);
+        }
+    }
+
+    public static clearSavedData(team: Team): void {
+        // Ask for confirmation before clearing
+        if (confirm('Are you sure you want to clear all saved player selections? This cannot be undone.')) {
+            // Clear the cookie
+            this.clearCookie(team);
+            // Reset composition to blank state
+            this.resetComposition();
+            // Update the modal content to reflect the cleared state
+            this.updateModalContent(team);
+            // Show confirmation message
+            alert('Saved player selections have been cleared successfully.');
         }
     }
 

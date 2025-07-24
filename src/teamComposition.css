@@ -394,6 +394,18 @@
     transform: translateY(-1px);
 }
 
+.btn-warning {
+    background-color: #ffc107;
+    color: #212529;
+    border: 1px solid #ffc107;
+}
+
+.btn-warning:hover {
+    background-color: #e0a800;
+    border-color: #d39e00;
+    transform: translateY(-1px);
+}
+
 /* Export button specific styling */
 #export-summary-btn {
     background-color: #17a2b8;
@@ -556,17 +568,10 @@
 
 .players-section {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
-    gap: 20px;
-    padding: 1rem 0;
-    justify-items: center;
-}
-
-/* Specific adjustments for summary page */
-.summary-content .players-section {
     grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
     gap: 25px;
     padding: 1.5rem 0;
+    justify-items: center;
 }
 
 /* Ensure player cards fit properly in summary */
