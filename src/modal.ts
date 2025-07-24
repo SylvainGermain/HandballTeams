@@ -2,49 +2,13 @@ import U18PlayersData from '../resources/U18Players.json';
 import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import O16PlayersData from '../resources/O16Players.json';
-import backgroundImage from '../resources/background.png';
-import html2canvas from 'html2canvas';
+
 import './modal.css';
-
-// Interface for team data (importing from main)
-interface Team {
-    id: string;
-    name: string;
-    description: string;
-}
-
-enum Post {
-  COACH = "COACH",
-  DC = "DC",
-  ALG = "ALG",
-  ARG = "ARG",
-  GK = "GK",
-  ALD = "ALD",
-  ARD = "ARD"
-}
-// type PostString = "COACH" | "DC" | "ALG" | "ARG" | "GK" | "ALD" | "ARD";
-
-const stats: Array<keyof Player> = ["physique", "technique", "defense", "intelligence", "attaque", "vitesse"];
-
-// Interface for player data
-interface Player {
-    nom?: string;
-    prenom?: string;
-    surnom?: string
-    physique: string;
-    technique: string;
-    defense: string;
-    intelligence: string;
-    attaque: string;
-    vitesse: string;
-    poste: string;
-    posteb?: string;
-    postec?: string;
-    groupe: string;
-}
+import { Player, Post, Team } from './model';
+import { PlayerHelper } from './player';
+import { ExportHelper } from './export';
 
 export class Modal {
-    private static maxStat = 100;
 
     public static show(team: Team): void {
         this.createModal(team);
@@ -52,80 +16,13 @@ export class Modal {
 
     public static async exportPlayersAsImage(teamId: string): Promise<void> {
         const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
+
         if (!playersSection) {
             alert('No players section found to export');
             return;
         }
 
-        try {
-            // Show a loading indicator
-            const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
-            const originalText = exportBtn.textContent;
-            exportBtn.textContent = 'Exporting...';
-            exportBtn.disabled = true;
-
-            // Store original styles to restore later
-            const originalMaxHeight = playersSection.style.maxHeight;
-            const originalOverflowY = playersSection.style.overflowY;
-            const originalHeight = playersSection.style.height;
-            const originalGridTemplateColumns = playersSection.style.gridTemplateColumns;
-
-            // Temporarily remove scrolling constraints and set fixed grid for capture
-            playersSection.style.maxHeight = 'none';
-            playersSection.style.overflowY = 'visible';
-            playersSection.style.height = 'auto';
-            playersSection.style.gridTemplateColumns = 'repeat(4, 1fr)'; // Fixed 4 columns for export
-
-            // Wait a moment for the layout to update
-            await new Promise(resolve => setTimeout(resolve, 100));
-
-            // Create canvas from the players section
-            const canvas = await html2canvas(playersSection, {
-                backgroundColor: '#f8f9fa',
-                scale: 2, // Higher quality
-                useCORS: true,
-                allowTaint: true,
-                width: playersSection.scrollWidth,
-                height: playersSection.scrollHeight,
-                scrollX: 0,
-                scrollY: 0
-            });
-
-            // Restore original styles
-            playersSection.style.maxHeight = originalMaxHeight;
-            playersSection.style.overflowY = originalOverflowY;
-            playersSection.style.height = originalHeight;
-            playersSection.style.gridTemplateColumns = originalGridTemplateColumns;
-
-            // Convert to blob and download
-            canvas.toBlob((blob) => {
-                if (blob) {
-                    const url = URL.createObjectURL(blob);
-                    const link = document.createElement('a');
-                    link.download = `${teamId}_players_${new Date().toISOString().split('T')[0]}.jpeg`;
-                    link.href = url;
-                    document.body.appendChild(link);
-                    link.click();
-                    document.body.removeChild(link);
-                    URL.revokeObjectURL(url);
-                }
-
-                // Reset button
-                exportBtn.textContent = originalText;
-                exportBtn.disabled = false;
-            }, 'image/jpeg', 0.9);
-
-        } catch (error) {
-            console.error('Error exporting players:', error);
-            alert('Failed to export players image. Please try again.');
-
-            // Reset button on error
-            const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
-            if (exportBtn) {
-                exportBtn.textContent = '📸 Export Players as JPEG';
-                exportBtn.disabled = false;
-            }
-        }
+        return ExportHelper.exportPlayersAsImage(playersSection, teamId);
     }
 
     private static createModal(team: Team): void {
@@ -221,159 +118,6 @@ export class Modal {
         return baseContent + playersSection;
     }
 
-    private static getDisplayedName(player: Player): string {
-      return player.surnom ?? player.prenom ?? player.nom ?? 'Unknown';
-    }
-
-    private static getI(input: string | undefined): string {
-      return  input ? input.charAt(0) : '';
-    }
-
-    private static getAvatarInitial(player: Player) {
-      const s = player.nom?.charAt(0);
-      if (s !== undefined) {
-        return s;
-      }
-      const name = `${this.getI(player.prenom)}${this.getI(player.nom)}`
-        return (name.length > 0) ? name : 'U';
-    }
-
-    private static getGroupDiv(player: Player): string {
-      return player.poste === Post.COACH || player.groupe === '2' ? ''
-              : ` <div class="flaming player-group">
-                    <span>★</span>
-                  </div>`;
-    }
-
-    private static getOutlineClass(player: Player): string {
-        const level = stats.reduce((acc, stat) => acc + (parseFloat((player as any)[stat as any]) || 0), 0);
-        const maxLevel = stats.length * this.maxStat;
-        return level < maxLevel/3 ? 'outline_bronze'
-        : level > 2*maxLevel/3 ? 'outline_gold' : 'outline_silver';
-    }
-
-    private static getSinglePosteLabel(poste1: string) {
-      return `<div class="player-position">
-                ${poste1}
-              </div>`;
-    }
-    private static getDualPosteLabel(poste1: string, poste2: string) {
-      return `<div class="player-position">
-                ${poste1}
-              </div>
-              <div class="player-position">
-                ${poste2}
-              </div>`;
-    }
-    private static getTriplePosteLabel(poste1: string, poste2: string, poste3: string) {
-      return `<div class="post-grid3">
-                <div class="player-position">
-                  ${poste1}
-                </div>
-                <div class="player-position">
-                  ${poste2}
-                </div>
-                <div class="player-position">
-                  ${poste3}
-                </div>
-              </div>`;
-    }
-    private static getPosteLabel(player: Player): string {
-      const postes = [player.poste];
-      player.posteb ? postes.push(player.posteb) : null;
-      player.postec ? postes.push(player.postec) : null;
-
-      if (postes.length === 1) {
-        return this.getSinglePosteLabel(postes[0]);
-      } else if (postes.length === 2) {
-        return this.getDualPosteLabel(postes[0], postes[1]);
-      } else if (postes.length === 3) {
-        return this.getTriplePosteLabel(postes[0], postes[1], postes[2]);
-      }
-      return '';
-    }
-    private static createPlayer(player: Player): string {
-        const outlineClass = this.getOutlineClass(player);
-
-        return `
-            <div class="player-card ${outlineClass}" style="background-image: url('${backgroundImage}');">
-
-                <!-- Player Info - Top of hexagon -->
-                <div class="player-info">
-                    ${this.getPosteLabel(player)}
-                    <h4 class="player-name">
-                        ${this.getDisplayedName(player)}
-                    </h4>
-                </div>
-
-                <!-- Player group - Right of hexagon -->
-                ${this.getGroupDiv(player)}
-
-                <!-- Player Avatar - Center of hexagon -->
-                <div class="player-avatar">
-                    ${this.getAvatarInitial(player)}
-                </div>
-
-                <!-- Stats - Bottom region of hexagon -->
-                <div class="player-stats">
-                    <div class="stats-grid">
-                        ${this.createHexagonStat('PHY', player.physique)}
-                        ${this.createHexagonStat('TEC', player.technique)}
-                        ${this.createHexagonStat('DEF', player.defense)}
-                        ${this.createHexagonStat('INT', player.intelligence)}
-                        ${this.createHexagonStat('ATT', player.attaque)}
-                        ${this.createHexagonStat('VIT', player.vitesse)}
-                    </div>
-                </div>
-            </div>
-        `;
-    }
-
-    private static createHexagonStat(statName: string, value: string): string {
-        const starRating = this.createStarRating(parseFloat(value));
-
-        return `
-            <div class="stat-item">
-                <span class="stat-name">${statName}</span>
-                <div class="stat-stars">
-                    ${starRating}
-                </div>
-            </div>
-        `;
-    }
-
-    private static createStarRating(value: number): string {
-        const maxStars = 3;
-        const percentage = value / Modal.maxStat; // Normalize to 0-1
-        const filledStars = percentage * maxStars; // Get filled stars as decimal
-
-        let starsHtml = '';
-
-        for (let i = 0; i < maxStars; i++) {
-            const starFill = Math.max(0, Math.min(1, filledStars - i)); // Calculate fill for this star (0-1)
-
-            if (starFill === 0) {
-                // Empty star
-                starsHtml += `<span class="star-empty">★</span>`;
-            } else if (starFill === 1) {
-                // Full star
-                starsHtml += `<span class="star-full">★</span>`;
-            } else {
-                // Partially filled star using gradient
-                const fillPercentage = Math.round(starFill * 100);
-                starsHtml += `
-                    <span class="star-partial" style="
-                        background: linear-gradient(90deg, #FFD700 ${fillPercentage}%, rgba(255,255,255,0.3) ${fillPercentage}%);
-                        -webkit-background-clip: text;
-                        -webkit-text-fill-color: transparent;
-                        background-clip: text;
-                    ">★</span>
-                `;
-            }
-        }
-
-        return starsHtml;
-    }
     private static createPlayersSection(players: Player[], team: Team): string {
         // Split players into coaches and regular players
         const coaches = players.filter(player => player.poste === Post.COACH);
@@ -393,7 +137,7 @@ export class Modal {
             `;
 
             coaches.forEach((coach: Player) => {
-                playersHTML += this.createPlayer(coach);
+                playersHTML += PlayerHelper.createPlayer(coach);
             });
 
             playersHTML += `
@@ -416,7 +160,7 @@ export class Modal {
             `;
 
             regularPlayers.forEach((player: Player) => {
-                playersHTML += this.createPlayer(player);
+                playersHTML += PlayerHelper.createPlayer(player);
             });
 
             playersHTML += `

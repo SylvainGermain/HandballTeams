@@ -96,12 +96,21 @@ h1 {
     font-size: clamp(12px, 2.5vw, 14px);
     margin: 5px;
     transition: background-color 0.2s;
-    width: 100%;
+    flex: 1;
+    min-width: 140px;
     max-width: 200px;
 }
 
 .btn:hover {
     background-color: #218838;
+}
+
+.btn-composition {
+    background-color: #007bff;
+}
+
+.btn-composition:hover {
+    background-color: #0056b3;
 }
 
 .loading {

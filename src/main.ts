@@ -1,6 +1,8 @@
 import './styles.css';
 import teamsData from '../resources/teams.json';
-import { Modal, type Team } from './modal';
+import { Modal} from './modal';
+import { type Team } from './model';
+import { TeamCompositionModal } from './teamComposition';
 
 class HandballTeamsApp {
     private teams: Team[];
@@ -22,7 +24,7 @@ class HandballTeamsApp {
     }
 
     private addEventListeners(): void {
-        // Add event listeners directly to detail buttons
+        // Add event listeners for detail buttons
         const detailButtons = document.querySelectorAll('.btn-details');
         detailButtons.forEach(button => {
             button.addEventListener('click', (event: Event) => {
@@ -30,6 +32,18 @@ class HandballTeamsApp {
                 const teamId = target.getAttribute('data-team-id');
                 if (teamId) {
                     this.showTeamDetails(teamId);
+                }
+            });
+        });
+
+        // Add event listeners for composition buttons
+        const compositionButtons = document.querySelectorAll('.btn-composition');
+        compositionButtons.forEach(button => {
+            button.addEventListener('click', (event: Event) => {
+                const target = event.target as HTMLElement;
+                const teamId = target.getAttribute('data-team-id');
+                if (teamId) {
+                    this.showTeamComposition(teamId);
                 }
             });
         });
@@ -42,13 +56,21 @@ class HandballTeamsApp {
         }
     }
 
+    private showTeamComposition(teamId: string): void {
+        const team = this.teams.find(t => t.id === teamId);
+        if (team) {
+            TeamCompositionModal.show(team);
+        }
+    }
+
     private createTeamCard(team: Team): string {
         return `
             <div class="team-card">
                 <h3>${team.name}</h3>
                 <p>${team.description}</p>
-                <div style="margin-top: 15px; text-align: center;">
-                    <button class="btn btn-details" data-team-id="${team.id}">Open Details</button>
+                <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
+                    <button class="btn btn-details" data-team-id="${team.id}">View Details</button>
+                    <button class="btn btn-composition" data-team-id="${team.id}">Team Composition</button>
                 </div>
             </div>
         `;
