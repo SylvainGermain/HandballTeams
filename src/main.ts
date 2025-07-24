@@ -3,6 +3,7 @@ import teamsData from '../resources/teams.json';
 import { TeamDetailsModal} from './modal';
 import { type Team } from './model';
 import { TeamCompositionModal } from './teamComposition';
+import { Resources } from './resources';
 
 class HandballTeamsApp {
     private teams: Team[];
@@ -19,8 +20,106 @@ class HandballTeamsApp {
     }
 
     private init(): void {
-        this.render();
-        this.addEventListeners();
+        this.showSplashScreen();
+    }
+
+    private showSplashScreen(): void {
+        // Create splash screen overlay
+        const splashOverlay = document.createElement('div');
+        splashOverlay.className = 'splash-overlay';
+        splashOverlay.innerHTML = `
+            <div class="splash-content">
+                <div class="splash-header">
+                    <h1>🐊Handball Teams</h1>
+                    <p>Team Management System</p>
+                </div>
+                <div class="splash-form">
+                    <div class="form-group">
+                        <label for="password-input">Enter Password:</label>
+                        <input type="password" id="password-input" class="password-input" placeholder="Password" />
+                    </div>
+                    <button id="login-btn" class="btn btn-primary">Access System</button>
+                    <div id="error-message" class="error-message" style="display: none;"></div>
+                </div>
+                <div class="splash-footer">
+                    <p>© 2025 Handball Teams Management</p>
+                </div>
+            </div>
+        `;
+
+        document.body.appendChild(splashOverlay);
+
+        // Add event listeners
+        const passwordInput = document.getElementById('password-input') as HTMLInputElement;
+        const loginBtn = document.getElementById('login-btn') as HTMLButtonElement;
+        const errorMessage = document.getElementById('error-message') as HTMLElement;
+
+        // Handle Enter key press
+        passwordInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                this.handleLogin(passwordInput.value, splashOverlay, errorMessage);
+            }
+        });
+
+        // Handle login button click
+        loginBtn.addEventListener('click', () => {
+            this.handleLogin(passwordInput.value, splashOverlay, errorMessage);
+        });
+
+        // Focus on password input
+        setTimeout(() => passwordInput.focus(), 100);
+    }
+
+    private async handleLogin(password: string, splashOverlay: HTMLElement, errorMessage: HTMLElement): Promise<void> {
+        if (!password.trim()) {
+            this.showError(errorMessage, 'Please enter a password');
+            return;
+        }
+
+        const loginBtn = document.getElementById('login-btn') as HTMLButtonElement;
+        const originalText = loginBtn.textContent;
+
+        try {
+            // Show loading state
+            loginBtn.disabled = true;
+            loginBtn.textContent = 'Loading...';
+            errorMessage.style.display = 'none';
+
+            // Try to load resources with the provided password
+            await Resources.loadResources(password);
+
+            // Success - remove splash screen and initialize app
+            this.removeSplashScreen(splashOverlay);
+            this.render();
+            this.addEventListeners();
+
+        } catch (error) {
+            // Show error message
+            this.showError(errorMessage, 'Invalid password. Please try again.');
+            loginBtn.disabled = false;
+            loginBtn.textContent = originalText;
+
+            // Clear and focus password input
+            const passwordInput = document.getElementById('password-input') as HTMLInputElement;
+            passwordInput.value = '';
+            passwordInput.focus();
+        }
+    }
+
+    private showError(errorElement: HTMLElement, message: string): void {
+        errorElement.textContent = message;
+        errorElement.style.display = 'block';
+        // Auto-hide error after 5 seconds
+        setTimeout(() => {
+            errorElement.style.display = 'none';
+        }, 5000);
+    }
+
+    private removeSplashScreen(splashOverlay: HTMLElement): void {
+        splashOverlay.style.animation = 'fadeOut 0.5s ease-in forwards';
+        setTimeout(() => {
+            splashOverlay.remove();
+        }, 500);
     }
 
     private addEventListeners(): void {

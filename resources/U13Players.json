@@ -1,54 +1,7 @@
 {
-  "players": [
-    {
-      "prenom": "Benoit",
-      "surnom": "Ben",
-      "physique": "100",
-      "technique": "50",
-      "defense": "30",
-      "intelligence": "50",
-      "attaque": "40",
-      "vitesse": "70",
-      "poste": "COACH",
-      "posteb": "DC",
-      "groupe": "1"
-    },
-    {
-      "prenom": "Maxime",
-      "surnom": "Max",
-      "physique": "100",
-      "technique": "50",
-      "defense": "30",
-      "intelligence": "50",
-      "attaque": "40",
-      "vitesse": "70",
-      "poste": "COACH",
-      "posteb": "PIV",
-      "groupe": "2"
-    },
-    {
-      "prenom": "Pif",
-      "physique": "100",
-      "technique": "50",
-      "defense": "30",
-      "intelligence": "50",
-      "attaque": "40",
-      "vitesse": "70",
-      "poste": "DC",
-      "posteb": "ARG",
-      "postec": "ALG",
-      "groupe": "1"
-    },
-    {
-      "prenom": "Hercule",
-      "physique": "100",
-      "technique": "50",
-      "defense": "30",
-      "intelligence": "50",
-      "attaque": "40",
-      "vitesse": "70",
-      "poste": "GK",
-      "groupe": "2"
-    }
-  ]
+  "encrypted": {
+    "cipherText": "0a8eb067ef0122d3c793191787ce43cdf54b5ee9cd93943ca25221b65528aaf99875a603eb91582304406cf6de6754adf5bf39a89c5a5daa2d1e3d4ba15a6cf7b2697b925f66dd566c6a4d7d769e7df47eb1c409ae346cd6b2f92d4757b62ac70a9d498f141b67c7981b0b40bdf44f17940a8de454251d21e3d5fa0134024feeb3bdbddddcd864c054595c573cfb3a61ce5df68f03f7c75eeb73b490ed43795c7f56954972971d2457d8ec6ce5737d07ffda3cbd5a1f255ea9eb42bdbf7922fe0a30fe59f8cd2a724f45dcf081f36bc806086afb7440c889c32d28cf7b7d292299b1224c1616478782b6b89a04206b085b00e7c4da86c8f82960d388075a63e5846d7271bfa6e56ec080cccd39231d3a4620d04fd0f1b722af5ac61fd10c41fd3c14c411af0ffb7548461e7db26c95566d40fa76a01cf48cb4e61b6d780a513fc21667b0d33b61d4d62adbf57471c199cca8b8e1363bc44b297aaf7a71785b573d10cb53d61d689cf0def04a8049a837eebe271e18eb526a60245b6528c6cd41731269ada965d6cf3c1f03d40f9be77f0be77bc4e0a2cb02520409c86b49355795819b19f8155ecb65d9a94950a34ea85a7bb24104918b1fa25e45728f342de5e60ff57d968eeb2c1168f835a7096edbe760d7ade891e38b9b65ac8a3abe678df03373689e8e3f9c645625ba9ee035c5c6241474a4dd38349bbc2914f264edbbb64cefd2bcaafb755eef73df57353f6c761a594712dabaa49980fce38e5350ad4ab4b78a12e40de6e608117bcfeccc5107e67f881c183f00f71243f4c0af13932f9faa70958551d802cbec8c67953fbbd54e3f2d1c8f4b92149fe54eac97333611a5152e287d92d8d81660492b4a2d834988c10d39f59e4b2728f5768fecdd648a1eda2b133f8747cbc4ce6a087c0f0d399dd5acb5f2b0825ea688c730b59a71c482d4f333fcf91f81728fb90ad00abd6d72",
+    "iv": "94c9040bcce9920e6615405b",
+    "salt": "de12a96d3fa7678f494e8b18f3d3cabc"
+  }
 }

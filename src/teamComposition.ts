@@ -1,11 +1,8 @@
 import './teamComposition.css';
-import U18PlayersData from '../resources/U18Players.json';
-import U15PlayersData from '../resources/U15Players.json';
-import U13PlayersData from '../resources/U13Players.json';
-import O16PlayersData from '../resources/O16Players.json';
 import { Player, Post, Team, TeamComposition } from './model';
 import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
+import { Resources } from './resources';
 
 
 // enum Post {
@@ -127,7 +124,7 @@ export class TeamCompositionModal {
 
             if (!cookieData) return;
 
-            const players = this.getPlayersData(team.id);
+            const players = Resources.getPlayersData(team.id);
 
             // Load major players
             Object.entries(cookieData.majorPlayers || {}).forEach(([position, playerName]) => {
@@ -307,7 +304,7 @@ export class TeamCompositionModal {
     }
 
     private static createTeamSelectionStep(team: Team): string {
-        const players = this.getPlayersData(team.id);
+        const players = Resources.getPlayersData(team.id);
         const coachPlayers = players.filter(p => p.poste === 'COACH');
         const fieldPlayers = players.filter(p => p.poste !== 'COACH');
 
@@ -687,7 +684,7 @@ export class TeamCompositionModal {
     }
 
     private static updateMajorPlayer(position: string, playerName: string, team: Team): void {
-        const players = this.getPlayersData(team.id);
+        const players = Resources.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
         this.teamComposition.majorPlayers[position] = player || null;
         // Save to cookie whenever a player is updated
@@ -697,7 +694,7 @@ export class TeamCompositionModal {
     }
 
     private static updateSubstitute(index: number, playerName: string, team: Team): void {
-        const players = this.getPlayersData(team.id);
+        const players = Resources.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
         if (player) {
             this.teamComposition.substitutes[index] = player;
@@ -777,19 +774,6 @@ export class TeamCompositionModal {
             }
             this.addEventListeners(team);
         }
-    }
-
-    private static getPlayersData(teamId: string): Player[] {
-        if (teamId === 'U18') {
-            return U18PlayersData.players;
-        } else if (teamId === 'U15') {
-            return U15PlayersData.players;
-        } else if (teamId === 'U13') {
-            return U13PlayersData.players;
-        } else if (teamId === 'O16') {
-            return O16PlayersData.players;
-        }
-        return [];
     }
 
     private static getDisplayedName(player: Player): string {

@@ -7,7 +7,7 @@
     "build": "webpack --mode=production",
     "build:static": "npm run build && npm run copy:static",
     "copy:static": "node scripts/copy-static.js",
-    "convert": "node scripts/xlsTojson.js teamscard.xlsx resources",
+    "convert": "node scripts/xlsTojson.js teamscard.xlsx resources \"$npm_config_password\"",
     "dev": "webpack --mode=development",
     "start": "webpack serve --mode=development --open --hot",
     "start:dev": "webpack serve --mode=development --open --hot --live-reload",

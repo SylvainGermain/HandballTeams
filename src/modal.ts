@@ -1,12 +1,8 @@
-import U18PlayersData from '../resources/U18Players.json';
-import U15PlayersData from '../resources/U15Players.json';
-import U13PlayersData from '../resources/U13Players.json';
-import O16PlayersData from '../resources/O16Players.json';
-
 import './modal.css';
 import { Player, Post, Team } from './model';
 import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
+import { Resources } from './resources';
 
 export class TeamDetailsModal {
 
@@ -86,18 +82,7 @@ export class TeamDetailsModal {
     }
 
     private static createModalBody(team: Team): string {
-
-        let players: Player[] = [];
-        // If this is the U18 team, show individual player features
-        if (team.id === 'U18') {
-          players = U18PlayersData.players;
-        } else if (team.id === 'U15') {
-          players = U15PlayersData.players;
-        } else if (team.id === 'U13') {
-          players = U13PlayersData.players;
-        } else if (team.id === 'O16') {
-          players = O16PlayersData.players;
-        }
+        let players: Player[] = Resources.getPlayersData(team.id);
 
         const playersSection = this.createPlayersSection(players, team);
 

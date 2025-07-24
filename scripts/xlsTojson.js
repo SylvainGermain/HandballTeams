@@ -2,7 +2,66 @@
 const xlsx = require('xlsx');
 const fs = require('fs');
 
-function convertSheet(sheet, sheetName, outputDir) {
+const encryptedHeaders = ['prenom', 'nom', 'surnom'];
+
+async function getCryptoKey(password) {
+    const encoder = new TextEncoder();
+    const keyMaterial = encoder.encode(password);
+    return crypto.subtle.importKey(
+        'raw',
+        keyMaterial,
+        { name: 'PBKDF2' },
+        false,
+        ['deriveKey']
+    );
+}
+
+async function deriveKey(password, salt) {
+    const keyMaterial = await getCryptoKey(password);
+    return crypto.subtle.deriveKey(
+        {
+            name: 'PBKDF2',
+            salt: salt,
+            iterations: 100000,
+            hash: 'SHA-256'
+        },
+        keyMaterial,
+        { name: 'AES-GCM', length: 256 },
+        false,
+        ['encrypt', 'decrypt']
+    );
+}
+
+function arrayBufferToHex(buffer) {
+    return [...new Uint8Array(buffer)]
+        .map(byte => byte.toString(16).padStart(2, '0'))
+        .join('');
+}
+
+function generateSaltandIV() {
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  return { salt, iv };
+}
+
+async function encryptText(text, salt, iv, password) {
+    const encoder = new TextEncoder();
+    const key = await deriveKey(password, salt);
+
+    const encrypted = await crypto.subtle.encrypt(
+        { name: 'AES-GCM', iv: iv },
+        key,
+        encoder.encode(text)
+    );
+
+    return {
+        cipherText: arrayBufferToHex(encrypted),
+        iv: arrayBufferToHex(iv),
+        salt: arrayBufferToHex(salt)
+    };
+}
+
+function convertSheet(sheet, sheetName, outputDir, password) {
   console.log('Converting ', sheetName);
   const outputFile = `${outputDir}/${sheetName}Players.json`
   // Convert sheet to JSON
@@ -29,6 +88,8 @@ function convertSheet(sheet, sheetName, outputDir) {
     //  "attaque": 1,
     //  "vitesse": 1.5,
     //  "poste": "Coach"
+    //  "posteb": "Coach"
+    //  "postec": "Coach"
     // },
   // ]
 // }
@@ -54,33 +115,41 @@ function convertSheet(sheet, sheetName, outputDir) {
 
   jsonArray = jsonArray.filter( value => value !== null && value !== undefined);
 
-  const outputData = { players: jsonArray };
-  // Write the JSON data to a file
-  fs.writeFileSync(outputFile, JSON.stringify(outputData, null, 2));
+  const { salt, iv } = generateSaltandIV();
+  const stringArray = JSON.stringify(jsonArray);
+  encryptText(stringArray, salt, iv, password).then( (encrypted) => {
+    const outputData = { encrypted: encrypted };
 
-  console.log('JSON file created:', outputFile, '\n', 'With number of rows:', jsonArray.length);
+    // Write the JSON data to a file
+    fs.writeFileSync(outputFile, JSON.stringify(outputData, null, 2));
+
+    console.log('JSON file created:', outputFile, '\n', 'With number of rows:', jsonArray.length);
+  });
 }
 
 
-function excelToJson(inputFile, outputDir) {
+function excelToJson(inputFile, outputDir, password) {
   // Read Excel file
   const workbook = xlsx.readFile(inputFile);
   console.log('SheetNames.', workbook.SheetNames);
   workbook.SheetNames.forEach( sheetName => {
     const sheet = workbook.Sheets[sheetName];
-    convertSheet(sheet, sheetName, outputDir);
+    convertSheet(sheet, sheetName, outputDir, password);
   });
   console.log('Conversion complete.');
 }
 
 // Extract command line parameters
-const [, , inputFile, outputDir] = process.argv;
+const [, , inputFile, outputDir, password] = process.argv;
 
 // Check if required parameters are provided
-if (!inputFile, !outputDir) {
-    console.error('Usage: node excelToJson.js <inputFile> <outputDir>');
+if (!inputFile || !outputDir || !password) {
+    console.error('Usage: node xlsTojson.js <inputFile> <outputDir> <password>');
+    console.error('  inputFile:  Path to the Excel file to convert');
+    console.error('  outputDir:  Directory where JSON files will be saved');
+    console.error('  password:   Password used for encrypting the data');
     process.exit(1);
 }
 
 // run main function
-excelToJson(inputFile, outputDir);
+excelToJson(inputFile, outputDir, password);
