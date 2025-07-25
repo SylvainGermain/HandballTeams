@@ -4,7 +4,7 @@ import backgroundImage from '../resources/background.png';
 export namespace PlayerHelper{
 const maxStat = 100;
 
-export function createPlayer(player: Player): string {
+export function createPlayer(player: Player, showStats: boolean = true, customPosition?: string): string {
   const outlineClass = getOutlineClass(player);
 
   return `
@@ -12,7 +12,7 @@ export function createPlayer(player: Player): string {
 
           <!-- Player Info - Top of hexagon -->
           <div class="player-info">
-              ${getPosteLabel(player)}
+              ${customPosition ? getSinglePosteLabel(customPosition) : getPosteLabel(player)}
               <h4 class="player-name">
                   ${getDisplayedName(player)}
               </h4>
@@ -27,6 +27,7 @@ export function createPlayer(player: Player): string {
           </div>
 
           <!-- Stats - Bottom region of hexagon -->
+          ${showStats ? `
           <div class="player-stats">
               <div class="stats-grid">
                   ${createHexagonStat('PHY', player.physique)}
@@ -37,6 +38,7 @@ export function createPlayer(player: Player): string {
                   ${createHexagonStat('VIT', player.vitesse)}
               </div>
           </div>
+          ` : ''}
       </div>
   `;
 }
@@ -71,15 +73,22 @@ export function createPlayer(player: Player): string {
               // Full star
               starsHtml += `<span class="star-full">★</span>`;
           } else {
-              // Partially filled star using gradient
+              // Partially filled star using a more export-friendly approach
               const fillPercentage = Math.round(starFill * 100);
               starsHtml += `
                   <span class="star-partial" style="
-                      background: linear-gradient(90deg, #FFD700 ${fillPercentage}%, rgba(255,255,255,0.3) ${fillPercentage}%);
-                      -webkit-background-clip: text;
-                      -webkit-text-fill-color: transparent;
-                      background-clip: text;
-                  ">★</span>
+                      position: relative;
+                      color: rgba(255,255,255,0.3);
+                      text-shadow: 0 0 2px rgba(0,0,0,0.5);
+                  ">★<span style="
+                      position: absolute;
+                      left: 0;
+                      top: 0;
+                      width: ${fillPercentage}%;
+                      overflow: hidden;
+                      color: #FFD700;
+                      text-shadow: 0 0 3px rgba(255,215,0,0.6);
+                  ">★</span></span>
               `;
           }
       }

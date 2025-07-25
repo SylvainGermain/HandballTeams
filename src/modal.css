@@ -150,6 +150,12 @@
     gap: 10px;
 }
 
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .export-btn {
     background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
@@ -164,6 +170,17 @@
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.btn-export-gif {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+}
+
+.btn-export-gif:hover {
+    background: linear-gradient(135deg, #1e7e34, #155724);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40,167,69,0.4);
 }
 
 .export-btn:hover {

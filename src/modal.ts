@@ -21,6 +21,17 @@ export class TeamDetailsModal {
         return ExportHelper.exportPlayersAsImage(playersSection, teamId);
     }
 
+    public static async exportPlayersAsGif(teamId: string): Promise<void> {
+        const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
+
+        if (!playersSection) {
+            alert('No players section found to export');
+            return;
+        }
+
+        return ExportHelper.exportPlayersAsGif(playersSection, teamId);
+    }
+
     private static createModal(team: Team): void {
         // Remove existing modal if any
         const existingModal = document.querySelector('.modal-overlay');
@@ -137,9 +148,14 @@ export class TeamDetailsModal {
                 <div>
                     <div class="players-header">
                         <h4 class="section-heading">Players</h4>
-                        <button class="export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
-                            📸 Export Players as JPEG
-                        </button>
+                        <div class="export-buttons">
+                            <button class="export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
+                                📸 Export as JPEG
+                            </button>
+                            <button class="export-btn btn-export-gif" onclick="TeamDetailsModal.exportPlayersAsGif('${team.id}')">
+                                🎬 Export as GIF
+                            </button>
+                        </div>
                     </div>
                     <div class="players-section" id="players-section-${team.id}">
             `;

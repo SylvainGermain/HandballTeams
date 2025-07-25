@@ -1,7 +1,7 @@
 import U18PlayersData from '../resources/U18Players.json';
 import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
-import O16PlayersData from '../resources/O16Players.json';
+import SMPlayersData from '../resources/SMPlayers.json';
 import { Player } from './model';
 
 async function getCryptoKey(password: string) {
@@ -65,7 +65,7 @@ async function decryptText(encryptedData: {
       teamId === 'U18' ? U18PlayersData.encrypted :
       teamId === 'U15' ? U15PlayersData.encrypted :
       teamId === 'U13' ? U13PlayersData.encrypted :
-      teamId === 'O16' ? O16PlayersData.encrypted : undefined;
+      teamId === 'SM' ? SMPlayersData.encrypted : undefined;
 
     if (cipherData === undefined) {
       throw new Error('Unknown team ID');
@@ -84,7 +84,7 @@ export namespace Resources {
     await getAsyncPlayersData('U18', privateKey);
     await getAsyncPlayersData('U15', privateKey);
     await getAsyncPlayersData('U13', privateKey);
-    await getAsyncPlayersData('O16', privateKey);
+    await getAsyncPlayersData('SM', privateKey);
   }
 
   export function getPlayersData(teamId: string): Player[] {

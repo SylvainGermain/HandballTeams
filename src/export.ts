@@ -1,4 +1,6 @@
 import html2canvas from 'html2canvas';
+import { Resources } from './resources';
+import { PlayerHelper } from './player';
 
 export namespace ExportHelper {
 
@@ -74,6 +76,108 @@ export async function exportPlayersAsImage(playersSection: HTMLElement, teamId: 
       const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
       if (exportBtn) {
           exportBtn.textContent = '📸 Export Players as JPEG';
+          exportBtn.disabled = false;
+      }
+  }
+}
+
+export async function exportPlayersAsGif(playersSection: HTMLElement, teamId: string): Promise<void> {
+  if (!playersSection) {
+      alert('No players section found to export');
+      return;
+  }
+
+  try {
+      // Show a loading indicator
+      const exportBtn = document.querySelector('.btn-export-gif') as HTMLButtonElement;
+      const originalText = exportBtn?.textContent || 'Export as GIF';
+      if (exportBtn) {
+          exportBtn.textContent = 'Creating GIF...';
+          exportBtn.disabled = true;
+      }
+
+      // Import Resources to get player data
+
+      // Get all players for the team
+      const players = Resources.getPlayersData(teamId);
+      if (players.length === 0) {
+          alert('No players found for this team');
+          return;
+      }
+
+      // Create frames (4 players per frame)
+      const framesData: string[] = [];
+      const playersPerFrame = 4;
+      const totalFrames = Math.ceil(players.length / playersPerFrame);
+
+      // Create a temporary container for rendering individual players
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '-9999px';
+      tempContainer.style.width = '800px';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.backgroundColor = '#f8f9fa';
+      tempContainer.style.display = 'grid';
+      tempContainer.style.gridTemplateColumns = '1fr 1fr'; // 2x2 layout
+      tempContainer.style.gridTemplateRows = '1fr 1fr';
+      tempContainer.style.gap = '20px';
+      tempContainer.style.justifyItems = 'center';
+      tempContainer.style.alignItems = 'center';
+      document.body.appendChild(tempContainer);
+
+      for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+          // Clear the container
+          tempContainer.innerHTML = '';
+
+          // Get players for this frame
+          const startIndex = frameIndex * playersPerFrame;
+          const endIndex = Math.min(startIndex + playersPerFrame, players.length);
+          const framePlayers = players.slice(startIndex, endIndex);
+
+          // Create player cards for this frame
+          framePlayers.forEach(player => {
+              const playerCard = document.createElement('div');
+              playerCard.innerHTML = PlayerHelper.createPlayer(player, true); // Show stats
+              tempContainer.appendChild(playerCard.firstElementChild as HTMLElement);
+          });
+
+          // Wait for layout to update
+          await new Promise(resolve => setTimeout(resolve, 200));
+
+          // Capture this frame
+          const canvas = await html2canvas(tempContainer, {
+              backgroundColor: '#f8f9fa',
+              scale: 2,
+              useCORS: true,
+              allowTaint: true,
+              width: tempContainer.scrollWidth,
+              height: tempContainer.scrollHeight,
+              scrollX: 0,
+              scrollY: 0
+          });
+
+          // Convert canvas to data URL and store
+          framesData.push(canvas.toDataURL('image/png'));
+      }
+
+      // Remove the temporary container
+      document.body.removeChild(tempContainer);
+
+      // Reset button
+      if (exportBtn) {
+          exportBtn.textContent = originalText;
+          exportBtn.disabled = false;
+      }
+
+  } catch (error) {
+      console.error('Error exporting players as GIF:', error);
+      alert('Failed to export players as GIF. Please try again.');
+
+      // Reset button on error
+      const exportBtn = document.querySelector('.btn-export-gif') as HTMLButtonElement;
+      if (exportBtn) {
+          exportBtn.textContent = '🎬 Export as GIF';
           exportBtn.disabled = false;
       }
   }
@@ -159,7 +263,6 @@ export async function exportSummaryAsImage(summarySection: HTMLElement, fileName
               <div style="margin-bottom: 40px;">
                   <div style="display: grid; grid-template-columns: repeat(${Math.min(4, substitutesCards.length)}, 1fr); gap: 30px; justify-items: center; max-width: 1520px; margin: 0 auto;">
                       ${substitutesCards.map(card => (card as HTMLElement).outerHTML).join('')}
-                  </div>
               </div>
           ` : ''}
 
@@ -223,4 +326,5 @@ export async function exportSummaryAsImage(summarySection: HTMLElement, fileName
       }
   }
 }
+
 }

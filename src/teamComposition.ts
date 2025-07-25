@@ -508,9 +508,9 @@ export class TeamCompositionModal {
         );
 
         // Generate player cards using PlayerHelper
-        const majorPlayersHTML = majorPlayers.map(player => PlayerHelper.createPlayer(player)).join('');
-        const substitutesHTML = substitutes.map(player => PlayerHelper.createPlayer(player)).join('');
-        const coachHTML = coach ? PlayerHelper.createPlayer(coach) : '';
+        const majorPlayersHTML = majorPlayers.map(player => PlayerHelper.createPlayer(player, false)).join('');
+        const substitutesHTML = substitutes.map(player => PlayerHelper.createPlayer(player, false)).join('');
+        const coachHTML = coach ? PlayerHelper.createPlayer(coach, false) : '';
 
         return `
             <div class="step-content summary-content">
