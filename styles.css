@@ -509,6 +509,12 @@ h1 {
     gap: 10px;
 }
 
+.export-buttons {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
 .export-btn {
     background: linear-gradient(135deg, #007bff, #0056b3);
     color: white;
@@ -523,6 +529,62 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
+}
+
+.btn-export-gif {
+    background: linear-gradient(135deg, #28a745, #1e7e34);
+    box-shadow: 0 2px 4px rgba(40,167,69,0.3);
+}
+
+.btn-export-gif:hover {
+    background: linear-gradient(135deg, #1e7e34, #155724);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(40,167,69,0.4);
+}
+
+.btn-export-bundle {
+    background: linear-gradient(135deg, #fd7e14, #e55a00);
+    box-shadow: 0 2px 4px rgba(253,126,20,0.3);
+    transition: background 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.btn-export-bundle:hover:not(:disabled) {
+    background: linear-gradient(135deg, #e55a00, #c44500);
+    transform: translateY(-1px);
+    box-shadow: 0 4px 8px rgba(253,126,20,0.4);
+}
+
+.btn-export-bundle:disabled {
+    cursor: not-allowed;
+    transform: none;
+}
+
+.bundle-export-container {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.players-per-page-label {
+    font-size: 12px;
+    color: #666;
+    white-space: nowrap;
+}
+
+.players-per-page-input {
+    width: 60px;
+    padding: 8px 6px;
+    border: 2px solid #ddd;
+    border-radius: 4px;
+    font-size: 14px;
+    text-align: center;
+    transition: border-color 0.2s ease;
+}
+
+.players-per-page-input:focus {
+    outline: none;
+    border-color: #fd7e14;
+    box-shadow: 0 0 0 2px rgba(253,126,20,0.2);
 }
 
 .export-btn:hover {
@@ -799,6 +861,22 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
         top: 5px;
         right: 5px;
         padding: 8px;
+    }
+
+    .bundle-export-container {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 6px;
+    }
+
+    .players-per-page-label {
+        font-size: 11px;
+    }
+
+    .players-per-page-input {
+        width: 50px;
+        padding: 6px 4px;
+        font-size: 12px;
     }
 
     .team-title {

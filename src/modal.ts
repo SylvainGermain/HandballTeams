@@ -21,7 +21,7 @@ export class TeamDetailsModal {
         return ExportHelper.exportPlayersAsImage(playersSection, teamId);
     }
 
-    public static async exportPlayersAsGif(teamId: string): Promise<void> {
+    public static async exportPlayersAsBundle(teamId: string): Promise<void> {
         const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
 
         if (!playersSection) {
@@ -29,7 +29,17 @@ export class TeamDetailsModal {
             return;
         }
 
-        return ExportHelper.exportPlayersAsGif(playersSection, teamId);
+        // Get the number of players per page from the input
+        const playersPerPageInput = document.querySelector(`#players-per-page-${teamId}`) as HTMLInputElement;
+        const playersPerPage = playersPerPageInput ? parseInt(playersPerPageInput.value) || 4 : 4;
+
+        // Validate the input
+        if (playersPerPage < 1 || playersPerPage > 20) {
+            alert('Please enter a number between 1 and 20 for players per page');
+            return;
+        }
+
+        return ExportHelper.exportPlayersAsBundle(playersSection, teamId, playersPerPage);
     }
 
     private static createModal(team: Team): void {
@@ -152,9 +162,13 @@ export class TeamDetailsModal {
                             <button class="export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
                                 📸 Export as JPEG
                             </button>
-                            <button class="export-btn btn-export-gif" onclick="TeamDetailsModal.exportPlayersAsGif('${team.id}')">
-                                🎬 Export as GIF
-                            </button>
+                            <div class="bundle-export-container">
+                                <label for="players-per-page-${team.id}" class="players-per-page-label">Players per page:</label>
+                                <input type="number" id="players-per-page-${team.id}" min="1" max="20" value="4" class="players-per-page-input" placeholder="4">
+                                <button class="export-btn btn-export-bundle" onclick="TeamDetailsModal.exportPlayersAsBundle('${team.id}')">
+                                    📦 Export as Bundle
+                                </button>
+                            </div>
                         </div>
                     </div>
                     <div class="players-section" id="players-section-${team.id}">

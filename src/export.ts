@@ -1,6 +1,8 @@
 import html2canvas from 'html2canvas';
 import { Resources } from './resources';
 import { PlayerHelper } from './player';
+import JSZip from 'jszip';
+import { Post } from './model';
 
 export namespace ExportHelper {
 
@@ -81,7 +83,7 @@ export async function exportPlayersAsImage(playersSection: HTMLElement, teamId: 
   }
 }
 
-export async function exportPlayersAsGif(playersSection: HTMLElement, teamId: string): Promise<void> {
+export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId: string, playersPerPage: number = 4): Promise<void> {
   if (!playersSection) {
       alert('No players section found to export');
       return;
@@ -89,26 +91,28 @@ export async function exportPlayersAsGif(playersSection: HTMLElement, teamId: st
 
   try {
       // Show a loading indicator
-      const exportBtn = document.querySelector('.btn-export-gif') as HTMLButtonElement;
-      const originalText = exportBtn?.textContent || 'Export as GIF';
+      const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
+      const originalText = exportBtn?.textContent || 'Export as Bundle';
       if (exportBtn) {
-          exportBtn.textContent = 'Creating GIF...';
+          exportBtn.textContent = 'Exporting...';
           exportBtn.disabled = true;
       }
 
       // Import Resources to get player data
 
       // Get all players for the team
-      const players = Resources.getPlayersData(teamId);
+      const allPlayers = Resources.getPlayersData(teamId);
+      // Filter out coaches - only include regular players in the bundle
+      const players = allPlayers.filter(player => player.poste !== Post.COACH);
+
       if (players.length === 0) {
-          alert('No players found for this team');
+          alert('No players found for this team (coaches are excluded from bundle export)');
           return;
       }
 
-      // Create frames (4 players per frame)
-      const framesData: string[] = [];
-      const playersPerFrame = 4;
-      const totalFrames = Math.ceil(players.length / playersPerFrame);
+      // Create frames (configurable players per frame)
+      const zip = new JSZip();
+      const totalFrames = Math.ceil(players.length / playersPerPage);
 
       // Create a temporary container for rendering individual players
       const tempContainer = document.createElement('div');
@@ -119,20 +123,31 @@ export async function exportPlayersAsGif(playersSection: HTMLElement, teamId: st
       tempContainer.style.padding = '20px';
       tempContainer.style.backgroundColor = '#f8f9fa';
       tempContainer.style.display = 'grid';
-      tempContainer.style.gridTemplateColumns = '1fr 1fr'; // 2x2 layout
-      tempContainer.style.gridTemplateRows = '1fr 1fr';
+
+      // Dynamic grid layout based on players per page
+      const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
+      const rows = Math.ceil(playersPerPage / columns);
+      tempContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
+      tempContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
+
       tempContainer.style.gap = '20px';
       tempContainer.style.justifyItems = 'center';
       tempContainer.style.alignItems = 'center';
       document.body.appendChild(tempContainer);
 
       for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
+          // Update visual progress (80% for capture, 20% for ZIP generation)
+          const captureProgress = Math.round((frameIndex / totalFrames) * 80);
+          if (exportBtn) {
+              exportBtn.style.background = `linear-gradient(90deg, #fd7e14 ${captureProgress}%, #e55a00 ${captureProgress}%)`;
+          }
+
           // Clear the container
           tempContainer.innerHTML = '';
 
           // Get players for this frame
-          const startIndex = frameIndex * playersPerFrame;
-          const endIndex = Math.min(startIndex + playersPerFrame, players.length);
+          const startIndex = frameIndex * playersPerPage;
+          const endIndex = Math.min(startIndex + playersPerPage, players.length);
           const framePlayers = players.slice(startIndex, endIndex);
 
           // Create player cards for this frame
@@ -157,28 +172,101 @@ export async function exportPlayersAsGif(playersSection: HTMLElement, teamId: st
               scrollY: 0
           });
 
-          // Convert canvas to data URL and store
-          framesData.push(canvas.toDataURL('image/png'));
+          // Convert canvas to JPEG blob and add to ZIP
+          const blob = await new Promise<Blob | null>((resolve) => {
+              canvas.toBlob(resolve, 'image/jpeg', 0.9);
+          });
+
+          if (blob) {
+              let fileName: string;
+              if (playersPerPage === 1 && framePlayers.length === 1) {
+                  // For single player per page, prefix with player name
+                  const player = framePlayers[0];
+                  const playerName = `${player.prenom}_${player.nom}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+                  fileName = `${playerName}_${teamId}_page_${frameIndex + 1}_of_${totalFrames}.jpg`;
+              } else {
+                  // For multiple players per page, use original naming
+                  fileName = `${teamId}_page_${frameIndex + 1}_of_${totalFrames}.jpg`;
+              }
+              zip.file(fileName, blob);
+          }
       }
 
       // Remove the temporary container
       document.body.removeChild(tempContainer);
 
+      // Update visual progress to show ZIP creation phase
+      if (exportBtn) {
+          exportBtn.style.background = 'linear-gradient(90deg, #fd7e14 85%, #e55a00 85%)';
+      }
+
+      // Add a README file to the ZIP
+      const readmeContent = `Team: ${teamId}
+Export Date: ${new Date().toISOString().split('T')[0]}
+Total Players: ${players.length}
+Players per Page: ${playersPerPage}
+Total Pages: ${totalFrames}
+
+This bundle contains JPEG images of player cards organized in pages.
+Each page shows up to ${playersPerPage} players in a ${columns}x${rows} grid layout.
+
+Files included:
+${Array.from({ length: totalFrames }, (_, i) => {
+    const startIndex = i * playersPerPage;
+    const endIndex = Math.min(startIndex + playersPerPage, players.length);
+    const framePlayers = players.slice(startIndex, endIndex);
+
+    if (playersPerPage === 1 && framePlayers.length === 1) {
+        const player = framePlayers[0];
+        const playerName = `${player.prenom}_${player.nom}`.replace(/[^a-zA-Z0-9_-]/g, '_');
+        return `- ${playerName}_${teamId}_page_${i + 1}_of_${totalFrames}.jpg`;
+    } else {
+        return `- ${teamId}_page_${i + 1}_of_${totalFrames}.jpg`;
+    }
+}).join('\n')}
+`;
+
+      zip.file('README.txt', readmeContent);
+
+      // Update visual progress for ZIP generation
+      if (exportBtn) {
+          exportBtn.style.background = 'linear-gradient(90deg, #fd7e14 95%, #e55a00 95%)';
+      }
+
+      // Generate ZIP file and download
+      const zipBlob = await zip.generateAsync({ type: 'blob' });
+
+      // Update visual progress for download
+      if (exportBtn) {
+          exportBtn.style.background = 'linear-gradient(90deg, #fd7e14 100%, #e55a00 100%)';
+      }
+
+      const url = URL.createObjectURL(zipBlob);
+      const link = document.createElement('a');
+      link.download = `${teamId}_players_bundle_${new Date().toISOString().split('T')[0]}.zip`;
+      link.href = url;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
       // Reset button
       if (exportBtn) {
           exportBtn.textContent = originalText;
           exportBtn.disabled = false;
+          exportBtn.style.background = ''; // Reset to CSS default
       }
 
   } catch (error) {
-      console.error('Error exporting players as GIF:', error);
-      alert('Failed to export players as GIF. Please try again.');
+      console.error('Error exporting players as ZIP Bundle:', error);
+      alert('Failed to export players as ZIP Bundle. Please try again.');
 
       // Reset button on error
-      const exportBtn = document.querySelector('.btn-export-gif') as HTMLButtonElement;
+      const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
       if (exportBtn) {
-          exportBtn.textContent = '🎬 Export as GIF';
+          exportBtn.textContent = '📦 Export as Bundle';
           exportBtn.disabled = false;
+          exportBtn.style.background = ''; // Reset to CSS default
       }
   }
 }
