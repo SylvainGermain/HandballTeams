@@ -559,7 +559,7 @@ export class TeamCompositionModal {
 
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
-                    <button class="export-btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
+                    <button class="btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
                     <button class="btn btn-success" id="finish-composition-btn">End</button>
                 </div>
             </div>

@@ -159,7 +159,7 @@ export class TeamDetailsModal {
                     <div class="players-header">
                         <h4 class="section-heading">Players</h4>
                         <div class="export-buttons">
-                            <button class="btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
+                            <button class="btn export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
                                 📸 Export as JPEG
                             </button>
                             <div class="bundle-export-container">
@@ -206,5 +206,42 @@ export class TeamDetailsModal {
 
 // Make TeamDetailsModal available globally for onclick handlers
 (window as any).TeamDetailsModal = TeamDetailsModal;
+
+// Global handlers for player card double-click/double-touch export
+let touchStartTime: number = 0;
+let touchCount: number = 0;
+
+(window as any).handlePlayerCardDoubleClick = function(cardElement: HTMLElement) {
+    const playerName = cardElement.getAttribute('data-player-name') || 'Unknown Player';
+    ExportHelper.exportSinglePlayerCard(cardElement, playerName);
+};
+
+(window as any).handlePlayerCardTouchStart = function(cardElement: HTMLElement, event: TouchEvent) {
+    const now = Date.now();
+
+    if (now - touchStartTime < 300) {
+        touchCount++;
+    } else {
+        touchCount = 1;
+    }
+
+    touchStartTime = now;
+
+    if (touchCount === 2) {
+        event.preventDefault();
+        const playerName = cardElement.getAttribute('data-player-name') || 'Unknown Player';
+        ExportHelper.exportSinglePlayerCard(cardElement, playerName);
+        touchCount = 0;
+    }
+};
+
+(window as any).handlePlayerCardTouchEnd = function() {
+    // Reset touch count after a delay if no second touch occurs
+    setTimeout(() => {
+        if (touchCount === 1 && Date.now() - touchStartTime > 300) {
+            touchCount = 0;
+        }
+    }, 350);
+};
 
 export type { Team };

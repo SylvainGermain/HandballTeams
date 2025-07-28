@@ -6,9 +6,17 @@ const maxStat = 100;
 
 export function createPlayer(player: Player, showStats: boolean = true, customPosition?: string): string {
   const outlineClass = getOutlineClass(player);
+  const playerName = `${player.prenom} ${player.nom}`;
+  const playerId = `player-${player.nom}-${player.prenom}`.replace(/\s+/g, '-').toLowerCase();
 
   return `
-      <div class="player-card ${outlineClass}" style="background-image: url('${backgroundImage}');">
+      <div class="player-card ${outlineClass}"
+           id="${playerId}"
+           style="background-image: url('${backgroundImage}');"
+           data-player-name="${playerName}"
+           ondblclick="handlePlayerCardDoubleClick(this)"
+           ontouchstart="handlePlayerCardTouchStart(this, event)"
+           ontouchend="handlePlayerCardTouchEnd(this, event)">
 
           <!-- Player Info - Top of hexagon -->
           <div class="player-info">

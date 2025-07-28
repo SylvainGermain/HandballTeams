@@ -279,6 +279,66 @@ ${Array.from({ length: totalFrames }, (_, i) => {
   }
 }
 
+export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName: string): Promise<void> {
+  if (!playerCard) {
+      alert('No player card found to export');
+      return;
+  }
+
+  try {
+      // Create a temporary container for the single player card
+      const tempContainer = document.createElement('div');
+      tempContainer.style.position = 'absolute';
+      tempContainer.style.left = '-9999px';
+      tempContainer.style.top = '0';
+      tempContainer.style.padding = '20px';
+      tempContainer.style.backgroundColor = '#f8f9fa';
+      tempContainer.style.width = 'auto';
+      tempContainer.style.height = 'auto';
+
+      // Clone the player card
+      const clonedCard = playerCard.cloneNode(true) as HTMLElement;
+      tempContainer.appendChild(clonedCard);
+      document.body.appendChild(tempContainer);
+
+      // Wait a moment for the layout to update
+      await new Promise(resolve => setTimeout(resolve, 100));
+
+      // Create canvas from the single player card
+      const canvas = await html2canvas(tempContainer, {
+          backgroundColor: '#f8f9fa',
+          scale: 2, // Higher quality
+          useCORS: true,
+          allowTaint: true,
+          width: tempContainer.scrollWidth,
+          height: tempContainer.scrollHeight,
+          scrollX: 0,
+          scrollY: 0
+      });
+
+      // Remove temporary container
+      document.body.removeChild(tempContainer);
+
+      // Convert canvas to blob
+      canvas.toBlob((blob) => {
+          if (blob) {
+              const url = URL.createObjectURL(blob);
+              const link = document.createElement('a');
+              link.href = url;
+              link.download = `${playerName.replace(/\s+/g, '_')}_card.jpg`;
+              document.body.appendChild(link);
+              link.click();
+              document.body.removeChild(link);
+              URL.revokeObjectURL(url);
+          }
+      }, 'image/jpeg', 0.9);
+
+  } catch (error) {
+      console.error('Error exporting single player card:', error);
+      alert('Failed to export player card. Please try again.');
+  }
+}
+
 export async function exportSummaryAsImage(summarySection: HTMLElement, fileName: string): Promise<void> {
   if (!summarySection) {
       alert('No summary section found to export');
