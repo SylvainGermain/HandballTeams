@@ -181,7 +181,7 @@ class HandballTeamsApp {
             <div class="team-grid">
                 ${teamsHTML}
             </div>
-            <div style="margin-top: 40px; text-align: center;">
+            <div style="color: var(--font-color1); margin-top: 40px; text-align: center;">
                 <p><strong>Total Teams:</strong> ${this.teams.length}</p>
             </div>
         `;

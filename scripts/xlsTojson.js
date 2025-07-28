@@ -117,6 +117,7 @@ function convertSheet(sheet, sheetName, outputDir, password) {
 
   const { salt, iv } = generateSaltandIV();
   const stringArray = JSON.stringify(jsonArray);
+  console.log('password: ', password);
   encryptText(stringArray, salt, iv, password).then( (encrypted) => {
     const outputData = { encrypted: encrypted };
 

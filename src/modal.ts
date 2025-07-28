@@ -113,7 +113,7 @@ export class TeamDetailsModal {
         const baseContent = `
             <h2 class="team-title">${team.name}</h2>
             <p class="team-description">${team.description}</p>
-            <div class="stats-container">
+            <div>
                 <div class="stats-row">
                     <span class="stats-label">Total Players:</span>
                     <span class="stats-value">${playersCount}</span>
@@ -159,13 +159,13 @@ export class TeamDetailsModal {
                     <div class="players-header">
                         <h4 class="section-heading">Players</h4>
                         <div class="export-buttons">
-                            <button class="export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
+                            <button class="btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
                                 📸 Export as JPEG
                             </button>
                             <div class="bundle-export-container">
                                 <label for="players-per-page-${team.id}" class="players-per-page-label">Players per page:</label>
                                 <input type="number" id="players-per-page-${team.id}" min="1" max="20" value="4" class="players-per-page-input" placeholder="4">
-                                <button class="export-btn btn-export-bundle" onclick="TeamDetailsModal.exportPlayersAsBundle('${team.id}')">
+                                <button class="btn btn-export-bundle" onclick="TeamDetailsModal.exportPlayersAsBundle('${team.id}')">
                                     📦 Export as Bundle
                                 </button>
                             </div>

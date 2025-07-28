@@ -4,17 +4,6 @@ import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
 import { Resources } from './resources';
 
-
-// enum Post {
-//     GK = "GK",
-//     PIV = "PIV",
-//     DC = "DC",
-//     ALG = "ALG",
-//     ARG = "ARG",
-//     ALD = "ALD",
-//     ARD = "ARD"
-// }
-
 export class TeamCompositionModal {
     private static currentStep: number = 1;
     private static teamComposition: TeamComposition = {
@@ -273,25 +262,25 @@ export class TeamCompositionModal {
             <div class="step-content">
                 <h3>Match Information</h3>
                 <form class="match-info-form">
-                    <div class="form-group">
+                    <div class="form-group-compo">
                         <label for="opposite-team">Opposite Team:</label>
                         <input type="text" id="opposite-team" value="${this.teamComposition.matchInfo.oppositeTeam}" placeholder="Enter opponent team name">
                     </div>
-                    <div class="form-group">
+                    <div class="form-group-compo">
                         <label for="location">Location:</label>
                         <input type="text" id="location" value="${this.teamComposition.matchInfo.location}" placeholder="Enter match location">
                     </div>
                     <div class="form-row">
-                        <div class="form-group">
+                        <div class="form-group-compo">
                             <label for="match-date">Date:</label>
                             <input type="date" id="match-date" value="${this.teamComposition.matchInfo.date}">
                         </div>
-                        <div class="form-group">
+                        <div class="form-group-compo">
                             <label for="match-time">Time:</label>
                             <input type="time" id="match-time" value="${this.teamComposition.matchInfo.time}">
                         </div>
                     </div>
-                    <div class="form-group">
+                    <div class="form-group-compo">
                         <label for="meeting-place">Meeting Place:</label>
                         <input type="text" id="meeting-place" value="${this.teamComposition.matchInfo.meetingPlace}" placeholder="Enter meeting location">
                     </div>
@@ -571,7 +560,7 @@ export class TeamCompositionModal {
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
                     <button class="export-btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
-                    <button class="btn btn-success" id="finish-composition-btn">Finish Composition</button>
+                    <button class="btn btn-success" id="finish-composition-btn">End</button>
                 </div>
             </div>
         `;

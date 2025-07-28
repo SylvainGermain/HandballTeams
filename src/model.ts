@@ -25,7 +25,7 @@ export interface Team {
 export enum Post {
   COACH = "COACH",
   GK = "GK",
-  PIV = 'PIV',
+  PIV = 'PVT',
   ARG = "ARG",
   ARD = "ARD",
   DC = "DC",

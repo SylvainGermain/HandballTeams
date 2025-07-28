@@ -119,8 +119,14 @@ export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId:
       tempContainer.style.position = 'absolute';
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '-9999px';
-      tempContainer.style.width = '800px';
-      tempContainer.style.padding = '20px';
+
+      // Optimize container width for better aspect ratio
+      const containerWidth = playersPerPage === 1 ? '400px' : '800px';
+      tempContainer.style.width = containerWidth;
+
+      // Minimize padding, especially for single player exports
+      const containerPadding = playersPerPage === 1 ? '5px' : '10px';
+      tempContainer.style.padding = containerPadding;
       tempContainer.style.backgroundColor = '#f8f9fa';
       tempContainer.style.display = 'grid';
 
@@ -130,7 +136,9 @@ export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId:
       tempContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
       tempContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-      tempContainer.style.gap = '20px';
+      // Minimize gap for better aspect ratio
+      const gridGap = playersPerPage === 1 ? '5px' : '15px';
+      tempContainer.style.gap = gridGap;
       tempContainer.style.justifyItems = 'center';
       tempContainer.style.alignItems = 'center';
       document.body.appendChild(tempContainer);

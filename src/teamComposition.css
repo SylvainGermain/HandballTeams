@@ -5,7 +5,7 @@
     left: 0;
     width: 100%;
     height: 100%;
-    background-color: rgba(0, 0, 0, 0.5);
+    background: rgba(0, 0, 0, 0.5);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -15,7 +15,8 @@
 }
 
 .composition-modal-content {
-    background: white;
+    background: var(--background-color1);
+    color: var(--font-color1);
     padding: 30px;
     border-radius: 12px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
@@ -53,11 +54,11 @@
 
 .composition-title {
     margin-top: 0;
-    color: #333;
+    /* color: #333; */
     margin-bottom: 25px;
     font-size: clamp(1.5rem, 4vw, 2rem);
     text-align: center;
-    border-bottom: 2px solid #007bff;
+    border-bottom: 2px solid var(--limiter-color1);
     padding-bottom: 10px;
 }
 
@@ -108,29 +109,29 @@
 }
 
 .step.active .step-number {
-    background-color: #007bff;
-    color: white;
+    background-color: var(--limiter-color1);
+    color: var(--font-color3);
 }
 
 .step.completed .step-number {
     background-color: #28a745;
-    color: white;
+    color: var(--font-color1);
 }
 
 .step-label {
     font-size: 12px;
-    color: #666;
+    color: var(--font-color2);
     text-align: center;
     font-weight: 500;
 }
 
 .step.active .step-label {
-    color: #007bff;
+    color: var(--font-color1);
     font-weight: 600;
 }
 
 .step.completed .step-label {
-    color: #28a745;
+    color: var(--font-color1);
     font-weight: 600;
 }
 
@@ -140,7 +141,7 @@
 }
 
 .step-content h3 {
-    color: #333;
+    /* color: #333; */
     margin-bottom: 20px;
     font-size: 1.4rem;
 }
@@ -227,7 +228,9 @@
     margin-bottom: 30px;
 }
 
-.form-group {
+.form-group-compo {
+    margin-bottom: 20px;
+    text-align: left;
     display: flex;
     flex-direction: column;
     gap: 8px;
@@ -239,13 +242,13 @@
     gap: 20px;
 }
 
-.form-group label {
+.form-group-compo label {
     font-weight: 600;
-    color: #333;
+    color: var(--font-color1);
     font-size: 14px;
 }
 
-.form-group input {
+.form-group-compo input {
     padding: 12px;
     border: 2px solid #ddd;
     border-radius: 6px;
@@ -253,7 +256,7 @@
     transition: border-color 0.2s ease;
 }
 
-.form-group input:focus {
+.form-group-compo input:focus {
     outline: none;
     border-color: #007bff;
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
@@ -395,13 +398,12 @@
 }
 
 .btn-warning {
-    background-color: #ffc107;
-    color: #212529;
+    /* background-color: #ffc107; */
     border: 1px solid #ffc107;
 }
 
 .btn-warning:hover {
-    background-color: #e0a800;
+    /* background-color: #e0a800; */
     border-color: #d39e00;
     transform: translateY(-1px);
 }
@@ -558,10 +560,10 @@
 }
 
 .section-heading {
-    color: #2c3e50;
+    color: var(--font-color1);
     font-size: 1.4rem;
     margin-bottom: 1rem;
-    border-bottom: 2px solid #3498db;
+    border-bottom: 2px solid var(--limiter-color1);
     padding-bottom: 0.5rem;
     text-align: center;
 }

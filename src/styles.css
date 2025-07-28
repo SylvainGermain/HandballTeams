@@ -1,7 +1,19 @@
+:root {
+  --background-color1: linear-gradient(135deg, #1CB651 0%, #000000 100%);
+  --background-color2: white;
+  --background-color3: #0f5c2a;
+  /* --background-color2: linear-gradient(135deg, #1CB651 0%, #000000 100%); */
+  --font-color1: white;
+  --font-color2: #AAAAAA;
+  --font-color3: black;
+
+  --limiter-color1: white;
+}
+
 body {
     font-family: Arial, sans-serif;
     margin: 0;
-    padding: clamp(10px, 3vw, 20px);
+    /* padding: clamp(10px, 3vw, 20px); */
     background-color: #f4f4f4;
     box-sizing: border-box;
 }
@@ -13,15 +25,15 @@ body {
 .container {
     max-width: 1200px;
     margin: 0 auto;
-    background-color: white;
+    /* background: var(--background-color1); */
     padding: clamp(15px, 4vw, 20px);
     border-radius: 8px;
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    /* box-shadow: 0 2px 4px rgba(0,0,0,0.1); */
     width: 100%;
 }
 
 h1 {
-    color: #333;
+    color: var(--font-color1);
     text-align: center;
     margin-bottom: 30px;
     font-size: clamp(1.5rem, 4vw, 2.5rem);
@@ -35,10 +47,10 @@ h1 {
 }
 
 .team-card {
-    background-color: #f8f9fa;
+    background: var(--background-color2);
     padding: clamp(15px, 4vw, 20px);
     border-radius: 6px;
-    border: 1px solid #e9ecef;
+    border: 1px solid #000000;
     transition: transform 0.2s ease-in-out;
     width: 100%;
 }
@@ -49,13 +61,13 @@ h1 {
 }
 
 .team-card h3 {
-    color: #007bff;
+    color: var(--font-color3);
     margin-top: 0;
     font-size: clamp(1.1rem, 3vw, 1.3rem);
 }
 
 .team-card p {
-    color: #666;
+    color: var(--font-color3);
     line-height: 1.6;
     font-size: clamp(0.85rem, 2.5vw, 1rem);
 }
@@ -87,8 +99,8 @@ h1 {
 }
 
 .btn {
-    background-color: #28a745;
-    color: white;
+    background: var(--background-color1);
+    color: var(--font-color1);
     border: none;
     padding: clamp(8px, 2vw, 10px) clamp(15px, 4vw, 20px);
     border-radius: 4px;
@@ -184,7 +196,7 @@ h1 {
     left: 0;
     width: 100%;
     height: 100%;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: var(--background-color1);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -261,12 +273,6 @@ h1 {
     transition: all 0.3s ease;
     text-transform: uppercase;
     letter-spacing: 0.5px;
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-    color: white;
-    width: 100%;
 }
 
 .btn-primary:hover:not(:disabled) {
