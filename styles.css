@@ -538,6 +538,47 @@ h1 {
     display: flex;
     align-items: center;
     gap: 8px;
+    flex-wrap: wrap;
+}
+
+.export-type-selector {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.export-type-label {
+    font-size: 12px;
+    color: var(--font-color1);
+    white-space: nowrap;
+}
+
+.radio-group {
+    display: flex;
+    gap: 8px;
+}
+
+.radio-option {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+    font-size: 12px;
+    color: var(--font-color1);
+    transition: color 0.2s ease;
+}
+
+.radio-option:hover {
+    color: #fd7e14;
+}
+
+.radio-option input[type="radio"] {
+    margin: 0;
+    cursor: pointer;
+}
+
+.radio-text {
+    white-space: nowrap;
 }
 
 .players-per-page-label {

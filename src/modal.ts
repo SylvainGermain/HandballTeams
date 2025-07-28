@@ -33,13 +33,21 @@ export class TeamDetailsModal {
         const playersPerPageInput = document.querySelector(`#players-per-page-${teamId}`) as HTMLInputElement;
         const playersPerPage = playersPerPageInput ? parseInt(playersPerPageInput.value) || 4 : 4;
 
+        // Get the export type from the radio buttons
+        const exportTypeRadio = document.querySelector(`input[name="export-type-${teamId}"]:checked`) as HTMLInputElement;
+        const exportType = exportTypeRadio ? exportTypeRadio.value : 'zip';
+
         // Validate the input
         if (playersPerPage < 1 || playersPerPage > 20) {
             alert('Please enter a number between 1 and 20 for players per page');
             return;
         }
 
-        return ExportHelper.exportPlayersAsBundle(playersSection, teamId, playersPerPage);
+        if (exportType === 'movie') {
+            return ExportHelper.exportPlayersAsMovie(playersSection, teamId, playersPerPage);
+        } else {
+            return ExportHelper.exportPlayersAsBundle(playersSection, teamId, playersPerPage);
+        }
     }
 
     private static createModal(team: Team): void {
@@ -100,6 +108,25 @@ export class TeamDetailsModal {
 
         // Prevent body scroll when modal is open
         document.body.style.overflow = 'hidden';
+
+        // Add event listeners for export type radio buttons to update button text
+        setTimeout(() => {  // Use setTimeout to ensure DOM is ready
+            const radioButtons = document.querySelectorAll(`input[name="export-type-${team.id}"]`);
+            const exportButton = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
+
+            radioButtons.forEach(radio => {
+                radio.addEventListener('change', function(this: HTMLInputElement) {
+                    if (exportButton) {
+                        const selectedValue = this.value;
+                        if (selectedValue === 'movie') {
+                            exportButton.textContent = '🎬 Export Movie';
+                        } else {
+                            exportButton.textContent = '📦 Export ZIP';
+                        }
+                    }
+                });
+            });
+        }, 100);
     }
 
     private static createModalBody(team: Team): string {
@@ -165,8 +192,23 @@ export class TeamDetailsModal {
                             <div class="bundle-export-container">
                                 <label for="players-per-page-${team.id}" class="players-per-page-label">Players per page:</label>
                                 <input type="number" id="players-per-page-${team.id}" min="1" max="20" value="4" class="players-per-page-input" placeholder="4">
+
+                                <div class="export-type-selector">
+                                    <label class="export-type-label">Export as:</label>
+                                    <div class="radio-group">
+                                        <label class="radio-option">
+                                            <input type="radio" name="export-type-${team.id}" value="zip" checked>
+                                            <span class="radio-text">📦 ZIP Bundle</span>
+                                        </label>
+                                        <label class="radio-option">
+                                            <input type="radio" name="export-type-${team.id}" value="movie">
+                                            <span class="radio-text">🎬 Movie</span>
+                                        </label>
+                                    </div>
+                                </div>
+
                                 <button class="btn btn-export-bundle" onclick="TeamDetailsModal.exportPlayersAsBundle('${team.id}')">
-                                    📦 Export as Bundle
+                                    � Export Bundle
                                 </button>
                             </div>
                         </div>

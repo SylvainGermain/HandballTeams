@@ -22,6 +22,7 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
+    "@types/gif.js": "^0.2.5",
     "@types/html2canvas": "^1.0.0",
     "@types/jszip": "^3.4.1",
     "@types/node": "^20.0.0",
@@ -40,6 +41,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "gif.js": "^0.2.0",
     "html2canvas": "^1.4.1",
     "jszip": "^3.10.1"
   }
