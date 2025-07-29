@@ -367,7 +367,7 @@ export async function exportPlayersAsMovie(playersSection: HTMLElement, teamId: 
           quality: 10, // Lower is better quality (1-30)
           width: frames[0].width,
           height: frames[0].height,
-          workerScript: 'https://cdn.jsdelivr.net/npm/gif.js@0.2.0/dist/gif.worker.js',
+          workerScript: './gif.worker.js', // Use local gif.worker.js from root level
           repeat: 0, // 0 = loop forever, -1 = no loop, n = loop n times
           transparent: null // No transparency
       });

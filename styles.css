@@ -8,6 +8,8 @@
   --font-color3: black;
 
   --limiter-color1: white;
+
+  --glowing-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 30px #49FF18, 0 0 40px #49FF18, 0 0 55px #49FF18, 0 0 75px #49ff18;
 }
 
 body {
@@ -876,6 +878,17 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
     text-shadow: 0 0 3px rgba(255,215,0,0.6);
     margin: 0 1px;
 }
+
+/* .star-full {
+    color: var(--font-color1);
+    text-shadow: var(--glowing-shadow);
+}
+
+.star-empty {
+    color: rgba(255,255,255,0.3);
+    text-shadow: 0 0 5px rgba(255,255,255,0.3);
+    margin: 0 1px;
+} */
 
 .star-partial {
     text-shadow: none;
