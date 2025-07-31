@@ -4,6 +4,8 @@ import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
 import { Resources } from './resources';
 
+const ExportMovie = '🎬 Export Movie';
+const ExportZip = '📦 Export ZIP';
 export class TeamDetailsModal {
 
     public static show(team: Team): void {
@@ -22,13 +24,6 @@ export class TeamDetailsModal {
     }
 
     public static async exportPlayersAsBundle(teamId: string): Promise<void> {
-        const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
-
-        if (!playersSection) {
-            alert('No players section found to export');
-            return;
-        }
-
         // Get the number of players per page from the input
         const playersPerPageInput = document.querySelector(`#players-per-page-${teamId}`) as HTMLInputElement;
         const playersPerPage = playersPerPageInput ? parseInt(playersPerPageInput.value) || 4 : 4;
@@ -44,9 +39,9 @@ export class TeamDetailsModal {
         }
 
         if (exportType === 'movie') {
-            return ExportHelper.exportPlayersAsMovie(playersSection, teamId, playersPerPage);
+            return ExportHelper.exportPlayersAsMovie(teamId, playersPerPage);
         } else {
-            return ExportHelper.exportPlayersAsBundle(playersSection, teamId, playersPerPage);
+            return ExportHelper.exportPlayersAsBundle(teamId, playersPerPage);
         }
     }
 
@@ -119,9 +114,9 @@ export class TeamDetailsModal {
                     if (exportButton) {
                         const selectedValue = this.value;
                         if (selectedValue === 'movie') {
-                            exportButton.textContent = '🎬 Export Movie';
+                            exportButton.textContent = ExportMovie;
                         } else {
-                            exportButton.textContent = '📦 Export ZIP';
+                            exportButton.textContent = ExportZip;
                         }
                     }
                 });
@@ -187,7 +182,7 @@ export class TeamDetailsModal {
                         <h4 class="section-heading">Players</h4>
                         <div class="export-buttons">
                             <button class="btn export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
-                                📸 Export as JPEG
+                                📸 Export as Image
                             </button>
                             <div class="bundle-export-container">
                                 <label for="players-per-page-${team.id}" class="players-per-page-label">Players per page:</label>
@@ -198,7 +193,7 @@ export class TeamDetailsModal {
                                     <div class="radio-group">
                                         <label class="radio-option">
                                             <input type="radio" name="export-type-${team.id}" value="zip" checked>
-                                            <span class="radio-text">📦 ZIP Bundle</span>
+                                            <span class="radio-text">📦 Files</span>
                                         </label>
                                         <label class="radio-option">
                                             <input type="radio" name="export-type-${team.id}" value="movie">
@@ -208,7 +203,7 @@ export class TeamDetailsModal {
                                 </div>
 
                                 <button class="btn btn-export-bundle" onclick="TeamDetailsModal.exportPlayersAsBundle('${team.id}')">
-                                    � Export Bundle
+                                    ${ExportZip}
                                 </button>
                             </div>
                         </div>

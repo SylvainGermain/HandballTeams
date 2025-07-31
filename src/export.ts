@@ -8,7 +8,7 @@ import GIF from 'gif.js';
 export namespace ExportHelper {
 
 // Helper function to create and configure temporary container
-function createTempContainer(playersPerPage: number): HTMLElement {
+function createTempContainer(playersPerPage: number, color: string, columns: number): HTMLElement {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
@@ -21,11 +21,10 @@ function createTempContainer(playersPerPage: number): HTMLElement {
     // Minimize padding, especially for single player exports
     const containerPadding = playersPerPage === 1 ? '5px' : '10px';
     tempContainer.style.padding = containerPadding;
-    tempContainer.style.backgroundColor = '#f8f9fa';
+    tempContainer.style.backgroundColor = color;
     tempContainer.style.display = 'grid';
 
     // Dynamic grid layout based on players per page
-    const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
     const rows = Math.ceil(playersPerPage / columns);
     tempContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
     tempContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
@@ -51,11 +50,11 @@ function populateContainer(tempContainer: HTMLElement, players: any[]): void {
 }
 
 // Helper function to capture frame as canvas
-async function captureFrame(tempContainer: HTMLElement): Promise<HTMLCanvasElement> {
+async function captureFrame(tempContainer: HTMLElement, color: string): Promise<HTMLCanvasElement> {
     await new Promise(resolve => setTimeout(resolve, 200));
 
     return await html2canvas(tempContainer, {
-        backgroundColor: '#f8f9fa',
+        backgroundColor: color,
         scale: 2,
         useCORS: true,
         allowTaint: true,
@@ -72,58 +71,41 @@ function getFilteredPlayers(teamId: string): any[] {
     return allPlayers.filter(player => player.poste !== Post.COACH);
 }
 
-export async function exportPlayersAsImage(playersSection: HTMLElement, teamId: string): Promise<void> {
-  if (!playersSection) {
-      alert('No players section found to export');
-      return;
-  }
+export async function exportPlayersAsImage(_: HTMLElement, teamId: string): Promise<void> {
 
+  const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
+  const originalText = exportBtn.textContent;
   try {
-      // Show a loading indicator
-      const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
-      const originalText = exportBtn.textContent;
-      exportBtn.textContent = 'Exporting...';
-      exportBtn.disabled = true;
+        // Get filtered players (excludes coaches)
+        const players = getFilteredPlayers(teamId);
+        const playersPerPage = players.length
+        if (playersPerPage === 0) {
+            alert('No players found for this team (coaches are excluded from bundle export)');
+            return;
+        }
 
-      // Store original styles to restore later
-      const originalMaxHeight = playersSection.style.maxHeight;
-      const originalOverflowY = playersSection.style.overflowY;
-      const originalHeight = playersSection.style.height;
-      const originalGridTemplateColumns = playersSection.style.gridTemplateColumns;
+        // Show a loading indicator
+        exportBtn.textContent = 'Exporting...';
+        exportBtn.disabled = true;
 
-      // Temporarily remove scrolling constraints and set fixed grid for capture
-      playersSection.style.maxHeight = 'none';
-      playersSection.style.overflowY = 'visible';
-      playersSection.style.height = 'auto';
-      playersSection.style.gridTemplateColumns = 'repeat(4, 1fr)'; // Fixed 4 columns for export
+        const backgroundColor = 'rgba(0,0,0,0)';
+        // Create temporary container
 
-      // Wait a moment for the layout to update
-      await new Promise(resolve => setTimeout(resolve, 100));
+        const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
+        const tempContainer = createTempContainer(playersPerPage, backgroundColor, columns);
 
-      // Create canvas from the players section
-      const canvas = await html2canvas(playersSection, {
-          backgroundColor: '#f8f9fa',
-          scale: 2, // Higher quality
-          useCORS: true,
-          allowTaint: true,
-          width: playersSection.scrollWidth,
-          height: playersSection.scrollHeight,
-          scrollX: 0,
-          scrollY: 0
-      });
+        // Populate container with player cards
+        populateContainer(tempContainer, players);
+        //   playersSection.style.gridTemplateColumns = 'repeat(4, 1fr)'; // Fixed 4 columns for export
+        // Capture this frame
+        const canvas = await captureFrame(tempContainer, backgroundColor);
 
-      // Restore original styles
-      playersSection.style.maxHeight = originalMaxHeight;
-      playersSection.style.overflowY = originalOverflowY;
-      playersSection.style.height = originalHeight;
-      playersSection.style.gridTemplateColumns = originalGridTemplateColumns;
-
-      // Convert to blob and download
-      canvas.toBlob((blob) => {
+        // Convert to blob and download
+        canvas.toBlob((blob) => {
           if (blob) {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
-              link.download = `${teamId}_players_${new Date().toISOString().split('T')[0]}.jpeg`;
+              link.download = `${teamId}_players_${new Date().toISOString().split('T')[0]}.png`;
               link.href = url;
               document.body.appendChild(link);
               link.click();
@@ -134,26 +116,19 @@ export async function exportPlayersAsImage(playersSection: HTMLElement, teamId: 
           // Reset button
           exportBtn.textContent = originalText;
           exportBtn.disabled = false;
-      }, 'image/jpeg', 0.9);
+      }, 'image/png');
 
   } catch (error) {
       console.error('Error exporting players:', error);
       alert('Failed to export players image. Please try again.');
 
       // Reset button on error
-      const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
-      if (exportBtn) {
-          exportBtn.textContent = '📸 Export Players as JPEG';
-          exportBtn.disabled = false;
-      }
+      exportBtn.textContent = originalText;
+      exportBtn.disabled = false;
   }
 }
 
-export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId: string, playersPerPage: number = 4): Promise<void> {
-  if (!playersSection) {
-      alert('No players section found to export');
-      return;
-  }
+export async function exportPlayersAsBundle(teamId: string, playersPerPage: number = 4): Promise<void> {
 
   try {
       // Show a loading indicator
@@ -175,10 +150,10 @@ export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId:
       // Create frames (configurable players per frame)
       const zip = new JSZip();
       const totalFrames = Math.ceil(players.length / playersPerPage);
-
+      const backgroundColor = 'rgba(0,0,0,0)';
       // Create temporary container
-      const tempContainer = createTempContainer(playersPerPage);
       const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
+      const tempContainer = createTempContainer(playersPerPage, backgroundColor, columns);
 
       for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
           // Update visual progress (80% for capture, 20% for ZIP generation)
@@ -196,11 +171,11 @@ export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId:
           populateContainer(tempContainer, framePlayers);
 
           // Capture this frame
-          const canvas = await captureFrame(tempContainer);
+          const canvas = await captureFrame(tempContainer, backgroundColor);
 
-          // Convert canvas to JPEG blob and add to ZIP
+          // Convert canvas to PNG blob and add to ZIP
           const blob = await new Promise<Blob | null>((resolve) => {
-              canvas.toBlob(resolve, 'image/jpeg', 0.9);
+              canvas.toBlob(resolve, 'image/png');
           });
 
           if (blob) {
@@ -209,10 +184,10 @@ export async function exportPlayersAsBundle(playersSection: HTMLElement, teamId:
                   // For single player per page, prefix with player name
                   const player = framePlayers[0];
                   const playerName = `${player.prenom}_${player.nom}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-                  fileName = `${playerName}_${teamId}_page_${frameIndex + 1}_of_${totalFrames}.jpg`;
+                  fileName = `${playerName}_${teamId}_page_${frameIndex + 1}_of_${totalFrames}.png`;
               } else {
                   // For multiple players per page, use original naming
-                  fileName = `${teamId}_page_${frameIndex + 1}_of_${totalFrames}.jpg`;
+                  fileName = `${teamId}_page_${frameIndex + 1}_of_${totalFrames}.png`;
               }
               zip.file(fileName, blob);
           }
@@ -233,7 +208,7 @@ Total Players: ${players.length}
 Players per Page: ${playersPerPage}
 Total Pages: ${totalFrames}
 
-This bundle contains JPEG images of player cards organized in pages.
+This bundle contains Png images of player cards organized in pages.
 Each page shows up to ${playersPerPage} players in a ${columns}x${Math.ceil(playersPerPage / columns)} grid layout.
 
 Files included:
@@ -245,9 +220,9 @@ ${Array.from({ length: totalFrames }, (_, i) => {
     if (playersPerPage === 1 && framePlayers.length === 1) {
         const player = framePlayers[0];
         const playerName = `${player.prenom}_${player.nom}`.replace(/[^a-zA-Z0-9_-]/g, '_');
-        return `- ${playerName}_${teamId}_page_${i + 1}_of_${totalFrames}.jpg`;
+        return `- ${playerName}_${teamId}_page_${i + 1}_of_${totalFrames}.png`;
     } else {
-        return `- ${teamId}_page_${i + 1}_of_${totalFrames}.jpg`;
+        return `- ${teamId}_page_${i + 1}_of_${totalFrames}.png`;
     }
 }).join('\n')}
 `;
@@ -297,12 +272,7 @@ ${Array.from({ length: totalFrames }, (_, i) => {
   }
 }
 
-export async function exportPlayersAsMovie(playersSection: HTMLElement, teamId: string, playersPerPage: number = 4): Promise<void> {
-  if (!playersSection) {
-      alert('No players section found to export');
-      return;
-  }
-
+export async function exportPlayersAsMovie(teamId: string, playersPerPage: number = 4): Promise<void> {
   try {
       // Show a loading indicator
       const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
@@ -325,7 +295,9 @@ export async function exportPlayersAsMovie(playersSection: HTMLElement, teamId: 
       const frames: HTMLCanvasElement[] = [];
 
       // Create temporary container
-      const tempContainer = createTempContainer(playersPerPage);
+      const backgroundColor = '#f8f9fa';
+      const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
+      const tempContainer = createTempContainer(playersPerPage, backgroundColor, columns);
 
       // Step 2: Convert frames to images using html2canvas
       for (let frameIndex = 0; frameIndex < totalFrames; frameIndex++) {
@@ -345,7 +317,7 @@ export async function exportPlayersAsMovie(playersSection: HTMLElement, teamId: 
           populateContainer(tempContainer, framePlayers);
 
           // Capture this frame as canvas
-          const canvas = await captureFrame(tempContainer);
+          const canvas = await captureFrame(tempContainer, backgroundColor);
           frames.push(canvas);
       }
 
@@ -466,7 +438,7 @@ export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName
       tempContainer.style.left = '-9999px';
       tempContainer.style.top = '0';
       tempContainer.style.padding = '20px';
-      tempContainer.style.backgroundColor = '#f8f9fa';
+      tempContainer.style.backgroundColor = 'rgba(0,0,0,0)';
       tempContainer.style.width = 'auto';
       tempContainer.style.height = 'auto';
 
@@ -480,7 +452,7 @@ export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName
 
       // Create canvas from the single player card
       const canvas = await html2canvas(tempContainer, {
-          backgroundColor: '#f8f9fa',
+          backgroundColor: 'rgba(0,0,0,0)',
           scale: 2, // Higher quality
           useCORS: true,
           allowTaint: true,
@@ -493,19 +465,19 @@ export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName
       // Remove temporary container
       document.body.removeChild(tempContainer);
 
-      // Convert canvas to blob
+      // Convert canvas to blob as PNG with transparency
       canvas.toBlob((blob) => {
           if (blob) {
               const url = URL.createObjectURL(blob);
               const link = document.createElement('a');
               link.href = url;
-              link.download = `${playerName.replace(/\s+/g, '_')}_card.jpg`;
+              link.download = `${playerName.replace(/\s+/g, '_')}_card.png`;
               document.body.appendChild(link);
               link.click();
               document.body.removeChild(link);
               URL.revokeObjectURL(url);
           }
-      }, 'image/jpeg', 0.9);
+      }, 'image/png');
 
   } catch (error) {
       console.error('Error exporting single player card:', error);
