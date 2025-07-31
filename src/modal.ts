@@ -13,14 +13,7 @@ export class TeamDetailsModal {
     }
 
     public static async exportPlayersAsImage(teamId: string): Promise<void> {
-        const playersSection = document.querySelector(`#players-section-${teamId}`) as HTMLElement;
-
-        if (!playersSection) {
-            alert('No players section found to export');
-            return;
-        }
-
-        return ExportHelper.exportPlayersAsImage(playersSection, teamId);
+        return ExportHelper.exportPlayersAsImage(teamId);
     }
 
     public static async exportPlayersAsBundle(teamId: string): Promise<void> {
@@ -165,7 +158,7 @@ export class TeamDetailsModal {
             `;
 
             coaches.forEach((coach: Player) => {
-                playersHTML += PlayerHelper.createPlayer(coach);
+                playersHTML += PlayerHelper.createPlayer(coach, false);
             });
 
             playersHTML += `

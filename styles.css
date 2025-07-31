@@ -409,13 +409,19 @@ h1 {
     padding: 20px;
     border-radius: 10px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
-    max-width: 900px;
+    max-width: 75vw;
     width: 100%;
     max-height: 95vh;
     overflow-y: auto;
+    overflow-x: hidden;
     position: relative;
     animation: modalSlideIn 0.3s ease-out;
     box-sizing: border-box;
+}
+
+.modal-content * {
+    box-sizing: border-box;
+    max-width: 100%;
 }
 
 .modal-close-btn {
@@ -497,10 +503,16 @@ h1 {
 /* Layout containers */
 .players-wrapper {
     margin-top: 25px;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .section-wrapper {
     margin-bottom: 30px;
+    overflow-x: hidden;
+    width: 100%;
+    box-sizing: border-box;
 }
 
 .players-header {
@@ -516,6 +528,9 @@ h1 {
     display: flex;
     gap: 10px;
     flex-wrap: wrap;
+    width: 100%;
+    justify-content: flex-end;
+    box-sizing: border-box;
 }
 
 .btn-export-bundle {
@@ -648,7 +663,7 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 .coaching-staff-section {
     padding: 10px;
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     justify-items: center;
     gap: 20px;
     border-radius: 8px;
@@ -674,10 +689,8 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 }
 
 .players-section {
-    max-height: 70vh;
-    overflow-y: auto;
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(min(300px, 100%), 1fr));
     gap: 25px;
     padding: 1.5rem 0;
     justify-items: center;
@@ -909,6 +922,7 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
         border-radius: 8px;
         max-height: 95vh;
         margin: 0;
+        max-width: 95vw;
     }
 
     .modal-close-btn {
@@ -920,8 +934,9 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 
     .bundle-export-container {
         flex-direction: column;
-        align-items: flex-start;
+        align-items: center;
         gap: 6px;
+        width: 100%;
     }
 
     .players-per-page-label {
@@ -973,16 +988,27 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 
     .coaching-staff-section,
     .players-section {
-        grid-template-columns: 1fr;
+        grid-template-columns: 1fr !important;
         gap: 15px;
         padding: 8px;
-        max-height: 60vh;
+    }
+
+    .coaching-staff-section {
+        justify-items: center;
+        width: 100%;
     }
 
     .player-card {
-        width: min(300px, 85vw);
-        height: min(300px, 85vw);
+        width: min(300px, 85vw) !important;
+        height: min(300px, 85vw) !important;
         margin: 5px auto;
+        max-width: 85vw;
+    }
+
+    .coaching-staff-section .player-card {
+        width: min(280px, 80vw) !important;
+        height: min(280px, 80vw) !important;
+        margin: 8px auto;
     }
 
     .player-info {
@@ -1028,16 +1054,25 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
     }
 }
 
+/* Responsive Design - ultra wide Desktop */
+@media (min-width: 1920px) {
+    .modal-content {
+        padding: 25px;
+        max-width: 50vw;
+    }
+}
+
+
 /* Responsive Design - Tablet and Small Desktop */
 @media (min-width: 769px) and (max-width: 1024px) {
     .modal-content {
         padding: 25px;
-        max-width: 800px;
+        max-width: 950px;
     }
 
     .coaching-staff-section,
     .players-section {
-        grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(300px, 100%), 1fr));
         gap: 18px;
     }
 
@@ -1060,7 +1095,7 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 
     .coaching-staff-section,
     .players-section {
-        grid-template-columns: repeat(auto-fit, minmax(350px, 1fr));
+        grid-template-columns: repeat(auto-fit, minmax(min(350px, 100%), 1fr));
     }
 }
 
@@ -1078,9 +1113,13 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 
     .coaching-staff-section,
     .players-section {
-        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-        max-height: 50vh;
+        grid-template-columns: repeat(auto-fit, minmax(min(250px, 45vw), 1fr)) !important;
         gap: 10px;
+        justify-items: center;
+    }
+
+    .coaching-staff-section {
+        grid-template-columns: 1fr !important;
     }
 
     .player-card {

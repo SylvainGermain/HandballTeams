@@ -71,7 +71,7 @@ function getFilteredPlayers(teamId: string): any[] {
     return allPlayers.filter(player => player.poste !== Post.COACH);
 }
 
-export async function exportPlayersAsImage(_: HTMLElement, teamId: string): Promise<void> {
+export async function exportPlayersAsImage(teamId: string): Promise<void> {
 
   const exportBtn = document.querySelector('.export-btn') as HTMLButtonElement;
   const originalText = exportBtn.textContent;
