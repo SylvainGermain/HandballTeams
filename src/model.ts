@@ -52,3 +52,27 @@ export interface TeamComposition {
     majorPlayers: { [position: string]: Player | null };
     substitutes: Player[];
 }
+
+// Interface for major player with position
+export interface MajorPlayerSummary {
+    position: string;
+    player: Player;
+}
+
+// Interface for summary statistics
+export interface SummaryStats {
+    totalPlayers: number;
+    majorPlayersCount: number;
+    substitutesCount: number;
+    hasCoach: boolean;
+}
+
+// Interface for the complete JSON summary
+export interface TeamCompositionSummary {
+    matchInfo: MatchInfo;
+    majorPlayers: MajorPlayerSummary[];
+    coach: Player | null;
+    substitutes: Player[];
+    summary: SummaryStats;
+    createdAt: string;
+}

@@ -439,10 +439,19 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 
 .player-name {
     margin: 8px 0;
-    color: white;
+    color: var(--font-color1);
     font-size: clamp(14px, 3vw, 18px);
     font-weight: bold;
     text-shadow: 2px 2px 4px rgba(0,0,0,0.9);
+}
+
+.player-mini {
+    position: absolute;
+    top: 40%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    font-size: clamp(20px, 4vw, 23px);
+    backdrop-filter: blur(2px);
 }
 
 .player-avatar {
@@ -459,7 +468,7 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
     justify-content: center;
     font-size: clamp(20px, 5vw, 28px);
     font-weight: bold;
-    color: white;
+    color: var(--font-color1);
     border: 3px solid rgba(255,255,255,0.4);
     text-shadow: 2px 2px 4px rgba(0,0,0,0.8);
     backdrop-filter: blur(2px);

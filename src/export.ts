@@ -2,8 +2,16 @@ import html2canvas from 'html2canvas';
 import { Resources } from './resources';
 import { PlayerHelper } from './player';
 import JSZip from 'jszip';
-import { Post } from './model';
+import { Post, TeamCompositionSummary } from './model';
 import GIF from 'gif.js';
+import { SummaryRenderer, PlayerLayout, PlayerSectionOptions } from './summaryRenderer';
+
+export enum SummaryExportMode {
+    CONVOC = 'CONVOC',
+    PREMATCH = 'PREMATCH',
+    POSTMATCH = 'POSTMATCH'
+}
+
 
 export namespace ExportHelper {
 
@@ -44,7 +52,7 @@ function populateContainer(tempContainer: HTMLElement, players: any[]): void {
     tempContainer.innerHTML = '';
     players.forEach(player => {
         const playerCard = document.createElement('div');
-        playerCard.innerHTML = PlayerHelper.createPlayer(player, true); // Show stats
+        playerCard.innerHTML = PlayerHelper.createPlayer(player, PlayerHelper.ShowAll); // Show stats
         tempContainer.appendChild(playerCard.firstElementChild as HTMLElement);
     });
 }
@@ -485,11 +493,8 @@ export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName
   }
 }
 
-export async function exportSummaryAsImage(summarySection: HTMLElement, fileName: string): Promise<void> {
-  if (!summarySection) {
-      alert('No summary section found to export');
-      return;
-  }
+
+export async function exportSummary(summary: TeamCompositionSummary, fileName: string, mode: SummaryExportMode): Promise<void> {
 
   try {
       // Show a loading indicator
@@ -505,81 +510,78 @@ export async function exportSummaryAsImage(summarySection: HTMLElement, fileName
       offscreenDiv.style.position = 'absolute';
       offscreenDiv.style.left = '-9999px';
       offscreenDiv.style.top = '-9999px';
-      offscreenDiv.style.width = '1600px'; // Increased width to accommodate 4 players
+      offscreenDiv.style.width = '1200px';
       offscreenDiv.style.padding = '40px';
-      offscreenDiv.style.backgroundColor = '#ffffff';
+      offscreenDiv.style.background = 'var(--background-color1)';
       offscreenDiv.style.fontFamily = 'Arial, sans-serif';
       document.body.appendChild(offscreenDiv);
 
-      // Extract match info from the original summary
-      const matchTitle = summarySection.querySelector('.match-title')?.textContent || 'Match Day';
-      const matchDayTitle = summarySection.querySelector('.match-day-title')?.textContent || 'Match Day';
+      // Use SummaryRenderer methods to generate the content
+      const options: PlayerSectionOptions = {
+          layout: PlayerLayout.GRID
+      };
 
-      // Get player cards from each section more reliably
-      const sectionWrappers = Array.from(summarySection.querySelectorAll('.section-wrapper'));
-
-      let majorPlayersCards: Element[] = [];
-      let substitutesCards: Element[] = [];
-      let coachCard: Element | null = null;
-
-      sectionWrappers.forEach(wrapper => {
-          const headingText = wrapper.querySelector('.section-heading')?.textContent || '';
-          const playerCards = Array.from(wrapper.querySelectorAll('.player-card'));
-
-          if (headingText.includes('Major Players')) {
-              majorPlayersCards = playerCards;
-          } else if (headingText.includes('Substitutes')) {
-              substitutesCards = playerCards;
-          } else if (headingText.includes('Coach')) {
-              coachCard = playerCards[0] || null;
-          }
-      });
-
-      // Build the offscreen content with better organization
-      offscreenDiv.innerHTML = `
+      const style = mode === SummaryExportMode.CONVOC ? `
           <style>
+              .section-wrapper {
+                  margin-bottom: 30px !important;
+              }
+              .section-heading {
+                  color: #2c3e50 !important;
+                  font-size: 1.6rem !important;
+                  margin-bottom: 20px !important;
+                  text-align: center !important;
+                  border-bottom: 3px solid #3498db !important;
+                  padding-bottom: 10px !important;
+              }
+              .players-section {
+                  display: grid !important;
+                  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+                  gap: 20px !important;
+                  justify-items: center !important;
+                  margin: 0 auto !important;
+              }
+              .coaching-staff-section {
+                  display: flex !important;
+                  justify-content: center !important;
+              }
               .player-card {
-                  width: 280px !important;
-                  height: 280px !important;
+                  width: 120px !important;
+                  height: 120px !important;
                   margin: 0 !important;
                   max-width: none !important;
                   max-height: none !important;
+                  border-radius: 8px !important;
+                  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
               }
-          </style>
-          <div style="text-align: center; margin-bottom: 30px;">
-              <h1 style="font-size: 2.5rem; color: #2c3e50; margin-bottom: 10px; font-weight: bold; text-transform: uppercase;">${matchDayTitle}</h1>
-              <h2 style="font-size: 1.8rem; color: #34495e; margin-bottom: 20px; font-weight: 600;">${matchTitle}</h2>
-              <h3 style="color: #2c3e50; font-size: 1.6rem; margin-bottom: 20px; text-align: center; border-bottom: 3px solid #3498db; padding-bottom: 10px;"> Players (${majorPlayersCards.length + substitutesCards.length})</h3>
+          </style>` : '';
 
+      switch(mode){
+        case SummaryExportMode.PREMATCH:
+        case SummaryExportMode.POSTMATCH:
+            options.layout = PlayerLayout.TACTICAL;
+            break;
+        case SummaryExportMode.CONVOC:
+            options.layout = PlayerLayout.GRID;
+      }
+
+      // Build the content using the modular methods
+      const titleHTML = SummaryRenderer.createSummaryTitle(summary);
+      const playersHTML = SummaryRenderer.createPlayersAndCoachSection(summary, options);
+      const detailsHTML = SummaryRenderer.createMatchDetailsSection(summary);
+
+      // Combine all sections with export-optimized styling
+      offscreenDiv.innerHTML = `
+          ${style}
+          <div>
+              ${titleHTML}
+              ${playersHTML}
+              ${detailsHTML}
           </div>
-
-          ${majorPlayersCards.length > 0 ? `
-              <div style="margin-bottom: 40px;">
-                  <div style="display: grid; grid-template-columns: repeat(${Math.min(4, majorPlayersCards.length)}, 1fr); gap: 30px; justify-items: center; max-width: 1520px; margin: 0 auto;">
-                      ${majorPlayersCards.map(card => (card as HTMLElement).outerHTML).join('')}
-                  </div>
-              </div>
-          ` : ''}
-
-          ${substitutesCards.length > 0 ? `
-              <div style="margin-bottom: 40px;">
-                  <div style="display: grid; grid-template-columns: repeat(${Math.min(4, substitutesCards.length)}, 1fr); gap: 30px; justify-items: center; max-width: 1520px; margin: 0 auto;">
-                      ${substitutesCards.map(card => (card as HTMLElement).outerHTML).join('')}
-              </div>
-          ` : ''}
-
-          ${coachCard ? `
-              <div style="margin-bottom: 30px;">
-                  <h3 style="color: #2c3e50; font-size: 1.6rem; margin-bottom: 20px; text-align: center; border-bottom: 3px solid #f39c12; padding-bottom: 10px;">Coach</h3>
-                  <div style="display: flex; justify-content: center;">
-                      ${(coachCard as HTMLElement).outerHTML}
-                  </div>
-              </div>
-          ` : ''}
       `;
 
       // Wait for layout to settle
-      await new Promise(resolve => setTimeout(resolve, 200));
+      await new Promise(resolve => setTimeout(resolve, 300));
 
       // Create canvas from the offscreen div
       const canvas = await html2canvas(offscreenDiv, {
@@ -587,7 +589,7 @@ export async function exportSummaryAsImage(summarySection: HTMLElement, fileName
           scale: 2, // Higher quality
           useCORS: true,
           allowTaint: true,
-          width: 1600, // Updated to match container width
+          width: 1200,
           height: offscreenDiv.scrollHeight,
           scrollX: 0,
           scrollY: 0

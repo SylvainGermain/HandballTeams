@@ -1,37 +1,12 @@
 import './teamComposition.css';
-import { Player, Post, Team, TeamComposition } from './model';
-import { PlayerHelper } from './player';
-import { ExportHelper } from './export';
+import { Player, Post, Team, TeamCompositionSummary } from './model';
+import { ExportHelper, SummaryExportMode } from './export';
 import { Resources } from './resources';
+import { SummaryRenderer, PlayerLayout, PlayerSectionOptions } from './summaryRenderer';
 
 export class TeamCompositionModal {
     private static currentStep: number = 1;
-    private static teamComposition: TeamComposition = {
-        matchInfo: {
-            oppositeTeam: '',
-            location: '',
-            date: '',
-            time: '',
-            meetingPlace: ''
-        },
-        majorPlayers: {
-            [Post.COACH]: null,
-            [Post.GK]: null,
-            [Post.PIV]: null,
-            [Post.DC]: null,
-            [Post.ALG]: null,
-            [Post.ARG]: null,
-            [Post.ALD]: null,
-            [Post.ARD]: null
-        },
-        substitutes: [
-            {} as Player,
-            {} as Player,
-            {} as Player,
-            {} as Player,
-            {} as Player
-        ]
-    };
+    private static teamCompositionSummary: TeamCompositionSummary = TeamCompositionModal.initComposition();
 
     public static show(team: Team): void {
         this.currentStep = 1;
@@ -40,8 +15,12 @@ export class TeamCompositionModal {
         this.createModal(team);
     }
 
-    private static resetComposition(): void {
-        this.teamComposition = {
+    private static resetComposition() {
+        this.teamCompositionSummary = this.initComposition();
+    }
+
+    private static initComposition(): TeamCompositionSummary{
+        return {
             matchInfo: {
                 oppositeTeam: '',
                 location: '',
@@ -49,43 +28,27 @@ export class TeamCompositionModal {
                 time: '',
                 meetingPlace: ''
             },
-            majorPlayers: {
-                [Post.COACH]: null,
-                [Post.GK]: null,
-                [Post.PIV]: null,
-                [Post.DC]: null,
-                [Post.ALG]: null,
-                [Post.ARG]: null,
-                [Post.ALD]: null,
-                [Post.ARD]: null
+            majorPlayers: [],
+            coach: null,
+            substitutes: [],
+            summary: {
+                totalPlayers: 0,
+                majorPlayersCount: 0,
+                substitutesCount: 0,
+                hasCoach: false
             },
-            substitutes: [
-                {} as Player,
-                {} as Player,
-                {} as Player,
-                {} as Player,
-                {} as Player
-            ]
+            createdAt: new Date().toISOString()
         };
     }
 
     private static saveToCookie(team: Team): void {
+        if (!this.teamCompositionSummary) return;
+
         try {
             const cookieData = {
                 teamId: team.id,
-                majorPlayers: {} as { [key: string]: string | null },
-                substitutes: [] as string[]
+                summaryJSON: this.teamCompositionSummary
             };
-
-            // Save major players (store by name for easier lookup)
-            Object.entries(this.teamComposition.majorPlayers).forEach(([position, player]) => {
-                cookieData.majorPlayers[position] = player ? this.getDisplayedName(player) : null;
-            });
-
-            // Save substitutes (store by name)
-            cookieData.substitutes = this.teamComposition.substitutes.map(player =>
-                player && (player.nom || player.prenom) ? this.getDisplayedName(player) : ''
-            );
 
             // Store in cookie with team-specific key, expires in 30 days
             const expirationDate = new Date();
@@ -111,47 +74,10 @@ export class TeamCompositionModal {
                 }
             }
 
-            if (!cookieData) return;
+            if (!cookieData?.summaryJSON) return;
 
-            const players = Resources.getPlayersData(team.id);
-
-            // Load major players
-            Object.entries(cookieData.majorPlayers || {}).forEach(([position, playerName]) => {
-                if (playerName) {
-                    const player = players.find(p => this.getDisplayedName(p) === playerName);
-                    if (player) {
-                        this.teamComposition.majorPlayers[position] = player;
-                    }
-                }
-            });
-
-            // Load substitutes
-            if (cookieData.substitutes && Array.isArray(cookieData.substitutes)) {
-                cookieData.substitutes.forEach((playerName: string, index: number) => {
-                    if (playerName && index < this.teamComposition.substitutes.length) {
-                        const player = players.find(p => this.getDisplayedName(p) === playerName);
-                        if (player) {
-                            this.teamComposition.substitutes[index] = player;
-                        }
-                    }
-                });
-
-                // If there were more substitutes saved than the default 5, extend the array
-                if (cookieData.substitutes.length > 5) {
-                    for (let i = 5; i < cookieData.substitutes.length; i++) {
-                        if (cookieData.substitutes[i]) {
-                            const player = players.find(p => this.getDisplayedName(p) === cookieData.substitutes[i]);
-                            if (player) {
-                                this.teamComposition.substitutes[i] = player;
-                            } else {
-                                this.teamComposition.substitutes[i] = {} as Player;
-                            }
-                        } else {
-                            this.teamComposition.substitutes[i] = {} as Player;
-                        }
-                    }
-                }
-            }
+            // Load the teamCompositionSummary directly
+            this.teamCompositionSummary = cookieData.summaryJSON;
         } catch (error) {
             console.warn('Failed to load team composition from cookie:', error);
         }
@@ -179,7 +105,8 @@ export class TeamCompositionModal {
 
         // Create modal content
         const modalContent = document.createElement('div');
-        modalContent.className = 'composition-modal-content';
+        modalContent.className = 'modal-content';
+        modalContent.id = 'composition-modal-content';
 
         // Create close button
         const closeButton = document.createElement('button');
@@ -258,31 +185,39 @@ export class TeamCompositionModal {
     }
 
     private static createMatchInfoStep(): string {
+        const matchInfo = this.teamCompositionSummary?.matchInfo || {
+            oppositeTeam: '',
+            location: '',
+            date: '',
+            time: '',
+            meetingPlace: ''
+        };
+
         return `
             <div class="step-content">
                 <h3>Match Information</h3>
                 <form class="match-info-form">
                     <div class="form-group-compo">
                         <label for="opposite-team">Opposite Team:</label>
-                        <input type="text" id="opposite-team" value="${this.teamComposition.matchInfo.oppositeTeam}" placeholder="Enter opponent team name">
+                        <input type="text" id="opposite-team" value="${matchInfo.oppositeTeam}" placeholder="Enter opponent team name">
                     </div>
                     <div class="form-group-compo">
                         <label for="location">Location:</label>
-                        <input type="text" id="location" value="${this.teamComposition.matchInfo.location}" placeholder="Enter match location">
+                        <input type="text" id="location" value="${matchInfo.location}" placeholder="Enter match location">
                     </div>
                     <div class="form-row">
                         <div class="form-group-compo">
                             <label for="match-date">Date:</label>
-                            <input type="date" id="match-date" value="${this.teamComposition.matchInfo.date}">
+                            <input type="date" id="match-date" value="${matchInfo.date}">
                         </div>
                         <div class="form-group-compo">
                             <label for="match-time">Time:</label>
-                            <input type="time" id="match-time" value="${this.teamComposition.matchInfo.time}">
+                            <input type="time" id="match-time" value="${matchInfo.time}">
                         </div>
                     </div>
                     <div class="form-group-compo">
                         <label for="meeting-place">Meeting Place:</label>
-                        <input type="text" id="meeting-place" value="${this.teamComposition.matchInfo.meetingPlace}" placeholder="Enter meeting location">
+                        <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Enter meeting location">
                     </div>
                 </form>
                 <div class="step-actions">
@@ -293,23 +228,41 @@ export class TeamCompositionModal {
     }
 
     private static createTeamSelectionStep(team: Team): string {
+
         const players = Resources.getPlayersData(team.id);
         const coachPlayers = players.filter(p => p.poste === 'COACH');
         const fieldPlayers = players.filter(p => p.poste !== 'COACH');
 
-        // Get all already selected major players (excluding current position)
+        // Get all already selected major players
         const getSelectedMajorPlayers = (excludePosition?: string) => {
-            return Object.entries(this.teamComposition.majorPlayers)
-                .filter(([pos, player]) => player !== null && pos !== excludePosition)
-                .map(([_, player]) => this.getDisplayedName(player!));
+            if (!this.teamCompositionSummary) return [];
+            const selectedPlayers = [];
+
+            // Add major players
+            for (const majorPlayer of this.teamCompositionSummary.majorPlayers) {
+                if (majorPlayer.position !== excludePosition) {
+                    selectedPlayers.push(this.getDisplayedName(majorPlayer.player));
+                }
+            }
+
+            // Add coach if not excluded
+            if (this.teamCompositionSummary.coach && excludePosition !== 'COACH') {
+                selectedPlayers.push(this.getDisplayedName(this.teamCompositionSummary.coach));
+            }
+
+            return selectedPlayers;
         };
 
         // Major Players Section
         const positionsHTML = Object.values(Post).map(position => {
-            const selectedPlayer = this.teamComposition.majorPlayers[position];
             const alreadySelectedMajors = getSelectedMajorPlayers(position);
+            let selectedPlayer = null;
 
             if (position === 'COACH') {
+                selectedPlayer = this.teamCompositionSummary?.coach || null;
+            } else {
+                selectedPlayer = this.teamCompositionSummary?.majorPlayers.find(mp => mp.position === position)?.player || null;
+            }            if (position === 'COACH') {
                 // Use coach players for COACH position, excluding already selected ones
                 const availablePlayersForPosition = coachPlayers.filter(player =>
                     !alreadySelectedMajors.includes(this.getDisplayedName(player))
@@ -376,9 +329,17 @@ export class TeamCompositionModal {
         }).join('');
 
         // Get players not selected as majors for substitutes (only field players, no coaches)
-        const majorPlayerNames = Object.values(this.teamComposition.majorPlayers)
-            .filter(player => player !== null)
-            .map(player => this.getDisplayedName(player!));
+        const majorPlayerNames: string[] = [];
+        if (this.teamCompositionSummary) {
+            // Add major players
+            for (const majorPlayer of this.teamCompositionSummary.majorPlayers) {
+                majorPlayerNames.push(this.getDisplayedName(majorPlayer.player));
+            }
+            // Add coach
+            if (this.teamCompositionSummary.coach) {
+                majorPlayerNames.push(this.getDisplayedName(this.teamCompositionSummary.coach));
+            }
+        }
 
         const availableForSubstitutes = fieldPlayers.filter(player =>
             !majorPlayerNames.includes(this.getDisplayedName(player))
@@ -386,7 +347,8 @@ export class TeamCompositionModal {
 
         // Get already selected substitutes (excluding current index)
         const getSelectedSubstitutes = (excludeIndex?: number) => {
-            return this.teamComposition.substitutes
+            if (!this.teamCompositionSummary) return [];
+            return this.teamCompositionSummary.substitutes
                 .map((sub, idx) => ({ player: sub, index: idx }))
                 .filter(({ player, index }) =>
                     player && this.getDisplayedName(player) && index !== excludeIndex
@@ -394,9 +356,13 @@ export class TeamCompositionModal {
                 .map(({ player }) => this.getDisplayedName(player));
         };
 
-        // Substitutes Section
-        const substitutesHTML = this.teamComposition.substitutes.map((player, index) => {
-            const displayName = this.getDisplayedName(player);
+        // Ensure we have at least 5 substitute slots
+        const substituteSlots = Math.max(5, this.teamCompositionSummary?.substitutes.length || 0);
+        const substitutesArray = Array.from({ length: substituteSlots }, (_, index) =>
+            this.teamCompositionSummary?.substitutes[index] || null
+        );        // Substitutes Section
+        const substitutesHTML = substitutesArray.map((player, index) => {
+            const displayName = player ? this.getDisplayedName(player) : '';
             const alreadySelectedSubstitutes = getSelectedSubstitutes(index);
 
             // Filter out already selected substitutes from available players
@@ -425,6 +391,14 @@ export class TeamCompositionModal {
             `;
         }).join('');
 
+        const matchInfo = this.teamCompositionSummary?.matchInfo || {
+            oppositeTeam: 'TBD',
+            location: 'TBD',
+            date: 'TBD',
+            time: 'TBD',
+            meetingPlace: 'TBD'
+        };
+
         return `
             <div class="step-content">
                 <div class="match-summary">
@@ -432,23 +406,23 @@ export class TeamCompositionModal {
                     <div class="match-summary-grid">
                         <div class="summary-item">
                             <span class="summary-label">Opposite Team:</span>
-                            <span class="summary-value">${this.teamComposition.matchInfo.oppositeTeam || 'TBD'}</span>
+                            <span class="summary-value">${matchInfo.oppositeTeam}</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Location:</span>
-                            <span class="summary-value">${this.teamComposition.matchInfo.location || 'TBD'}</span>
+                            <span class="summary-value">${matchInfo.location}</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Date:</span>
-                            <span class="summary-value">${this.teamComposition.matchInfo.date || 'TBD'}</span>
+                            <span class="summary-value">${matchInfo.date}</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Time:</span>
-                            <span class="summary-value">${this.teamComposition.matchInfo.time || 'TBD'}</span>
+                            <span class="summary-value">${matchInfo.time}</span>
                         </div>
                         <div class="summary-item">
                             <span class="summary-label">Meeting Place:</span>
-                            <span class="summary-value">${this.teamComposition.matchInfo.meetingPlace || 'TBD'}</span>
+                            <span class="summary-value">${matchInfo.meetingPlace}</span>
                         </div>
                     </div>
                 </div>
@@ -465,7 +439,7 @@ export class TeamCompositionModal {
                         <h3>Substitutes (5 base positions + up to 2 additional)</h3>
                         <div class="substitutes-container">
                             ${substitutesHTML}
-                            ${this.teamComposition.substitutes.length < 7 ?
+                            ${substituteSlots < 7 ?
                                 '<button class="btn btn-add" id="add-substitute-btn">Add Additional Substitute</button>' :
                                 '<p class="max-substitutes">Maximum substitutes reached (7)</p>'
                             }
@@ -483,79 +457,18 @@ export class TeamCompositionModal {
     }
 
     private static createSummaryStep(): string {
-        // Get selected major players (excluding coach)
-        const majorPlayers = Object.entries(this.teamComposition.majorPlayers)
-            .filter(([position, player]) => position !== 'COACH' && player !== null)
-            .map(([_, player]) => player!);
+        this.updateSummaryCounts();
 
-        // Get selected coach
-        const coach = this.teamComposition.majorPlayers[Post.COACH];
-
-        // Get selected substitutes (only non-empty ones)
-        const substitutes = this.teamComposition.substitutes.filter(player =>
-            player && this.getDisplayedName(player) && this.getDisplayedName(player) !== 'Unknown'
-        );
-
-        // Generate player cards using PlayerHelper
-        const majorPlayersHTML = majorPlayers.map(player => PlayerHelper.createPlayer(player, false)).join('');
-        const substitutesHTML = substitutes.map(player => PlayerHelper.createPlayer(player, false)).join('');
-        const coachHTML = coach ? PlayerHelper.createPlayer(coach, false) : '';
+        // Default options for the summary step
+        const stack: PlayerSectionOptions = {
+            layout: PlayerLayout.STACK
+        };
 
         return `
             <div class="step-content summary-content">
-                <h1 class="match-day-title">Match Day</h1>
-                <h2 class="match-title">Montigny vs ${this.teamComposition.matchInfo.oppositeTeam || 'TBD'}</h2>
-
-                <div class="players-summary">
-                    ${majorPlayers.length > 0 ? `
-                        <div class="section-wrapper">
-                            <h3 class="section-heading">Major Players (${majorPlayers.length})</h3>
-                            <div class="players-section">
-                                ${majorPlayersHTML}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    ${substitutes.length > 0 ? `
-                        <div class="section-wrapper">
-                            <h3 class="section-heading">Substitutes (${substitutes.length})</h3>
-                            <div class="players-section">
-                                ${substitutesHTML}
-                            </div>
-                        </div>
-                    ` : ''}
-
-                    ${coach ? `
-                        <div class="section-wrapper">
-                            <h3 class="section-heading">Coach</h3>
-                            <div class="coaching-staff-section">
-                                ${coachHTML}
-                            </div>
-                        </div>
-                    ` : ''}
-                </div>
-
-                <div class="match-details">
-                    <h3>Match Details</h3>
-                    <div class="match-details-grid">
-                        <div class="detail-item">
-                            <span class="detail-label">Date:</span>
-                            <span class="detail-value">${this.teamComposition.matchInfo.date || 'TBD'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Time:</span>
-                            <span class="detail-value">${this.teamComposition.matchInfo.time || 'TBD'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Location:</span>
-                            <span class="detail-value">${this.teamComposition.matchInfo.location || 'TBD'}</span>
-                        </div>
-                        <div class="detail-item">
-                            <span class="detail-label">Meeting Place:</span>
-                            <span class="detail-value">${this.teamComposition.matchInfo.meetingPlace || 'TBD'}</span>
-                        </div>
-                    </div>
-                </div>
+                ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                ${SummaryRenderer.createPlayersAndCoachSection(this.teamCompositionSummary, stack)}
+                ${SummaryRenderer.createMatchDetailsSection(this.teamCompositionSummary)}
 
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
@@ -588,7 +501,7 @@ export class TeamCompositionModal {
         // Export summary button
         const exportBtn = document.getElementById('export-summary-btn');
         if (exportBtn) {
-            exportBtn.addEventListener('click', () => this.exportSummaryAsImage());
+            exportBtn.addEventListener('click', () => this.exportSummary(SummaryExportMode.PREMATCH));
         }
 
         // Add substitute button
@@ -652,10 +565,11 @@ export class TeamCompositionModal {
     }
 
     private static validateMajorPlayers(): boolean {
-        const selectedCount = Object.values(this.teamComposition.majorPlayers)
-            .filter(player => player !== null).length;
+        if (!this.teamCompositionSummary) return false;
 
-        if (selectedCount < 8) {
+        const totalSelected = this.teamCompositionSummary.majorPlayers.length + (this.teamCompositionSummary.coach ? 1 : 0);
+
+        if (totalSelected < 8) {
             alert('Please select all 8 major players (including coach).');
             return false;
         }
@@ -663,7 +577,8 @@ export class TeamCompositionModal {
     }
 
     private static saveMatchInfo(): void {
-        this.teamComposition.matchInfo = {
+
+        this.teamCompositionSummary!.matchInfo = {
             oppositeTeam: (document.getElementById('opposite-team') as HTMLInputElement).value || 'TBD',
             location: (document.getElementById('location') as HTMLInputElement).value || 'TBD',
             date: (document.getElementById('match-date') as HTMLInputElement).value || 'TBD',
@@ -673,9 +588,32 @@ export class TeamCompositionModal {
     }
 
     private static updateMajorPlayer(position: string, playerName: string, team: Team): void {
+
         const players = Resources.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
-        this.teamComposition.majorPlayers[position] = player || null;
+
+        if (position === 'COACH') {
+            // Update coach
+            this.teamCompositionSummary!.coach = player || null;
+        } else {
+            // Update major player
+            if (player) {
+                // Remove existing player at this position if any
+                this.teamCompositionSummary!.majorPlayers = this.teamCompositionSummary!.majorPlayers.filter(mp => mp.position !== position);
+                // Add new player
+                this.teamCompositionSummary!.majorPlayers.push({
+                    position,
+                    player: player
+                });
+            } else {
+                // Remove player from this position
+                this.teamCompositionSummary!.majorPlayers = this.teamCompositionSummary!.majorPlayers.filter(mp => mp.position !== position);
+            }
+        }
+
+        // Update summary counts
+        this.updateSummaryCounts();
+
         // Save to cookie whenever a player is updated
         this.saveToCookie(team);
         // Update modal content to refresh dropdown lists and exclude selected players
@@ -683,23 +621,49 @@ export class TeamCompositionModal {
     }
 
     private static updateSubstitute(index: number, playerName: string, team: Team): void {
+
         const players = Resources.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
-        if (player) {
-            this.teamComposition.substitutes[index] = player;
-        } else {
-            this.teamComposition.substitutes[index] = {} as Player;
+
+        // Ensure substitutes array is large enough
+        while (this.teamCompositionSummary!.substitutes.length <= index) {
+            this.teamCompositionSummary!.substitutes.push({} as Player);
         }
+
+        if (player) {
+            this.teamCompositionSummary!.substitutes[index] = player;
+        } else {
+            // Remove the substitute
+            this.teamCompositionSummary!.substitutes.splice(index, 1);
+        }
+
+        // Update summary counts
+        this.updateSummaryCounts();
+
         // Save to cookie whenever a substitute is updated
         this.saveToCookie(team);
         // Update modal content to refresh dropdown lists and exclude selected players
         this.updateModalContent(team);
     }
 
+    private static updateSummaryCounts(): void {
+        if (!this.teamCompositionSummary) return;
+
+        this.teamCompositionSummary.summary = {
+            totalPlayers: this.teamCompositionSummary.majorPlayers.length + this.teamCompositionSummary.substitutes.length + (this.teamCompositionSummary.coach ? 1 : 0),
+            majorPlayersCount: this.teamCompositionSummary.majorPlayers.length,
+            substitutesCount: this.teamCompositionSummary.substitutes.length,
+            hasCoach: this.teamCompositionSummary.coach !== null
+        };
+    }
+
     public static addSubstitute(team: Team): void {
-        if (this.teamComposition.substitutes.length < 7) {
+
+        if (this.teamCompositionSummary!.substitutes.length < 7) {
             // Add empty slot for additional substitutes (beyond the 5 base positions)
-            this.teamComposition.substitutes.push({} as Player);
+            this.teamCompositionSummary!.substitutes.push({} as Player);
+            // Update summary counts
+            this.updateSummaryCounts();
             // Save to cookie when adding a substitute slot
             this.saveToCookie(team);
             this.updateModalContent(team);
@@ -722,8 +686,10 @@ export class TeamCompositionModal {
 
     public static removeSubstitute(index: number): void {
         // Only allow removing additional substitutes (index >= 5), not the base 5 positions
-        if (index >= 5) {
-            this.teamComposition.substitutes.splice(index, 1);
+        if (index >= 5 && this.teamCompositionSummary) {
+            this.teamCompositionSummary.substitutes.splice(index, 1);
+            // Update summary counts
+            this.updateSummaryCounts();
             // Force a page refresh to update the UI - in a real app you'd want better state management
             const modal = document.querySelector('.composition-modal-overlay');
             if (modal) {
@@ -734,27 +700,24 @@ export class TeamCompositionModal {
 
     private static finishComposition(): void {
         // Since validation is now done in step 2 transition, we can directly finish
-        console.log('Team Composition Complete:', this.teamComposition);
+        console.log('Team Composition Complete:', this.teamCompositionSummary);
         alert('Team composition saved successfully!');
         this.closeModal(document.querySelector('.composition-modal-overlay') as HTMLElement);
     }
 
-    public static async exportSummaryAsImage(): Promise<void> {
-        const summarySection = document.querySelector('.summary-content') as HTMLElement;
+    public static getSummaryJSON(): TeamCompositionSummary | null {
+        return this.teamCompositionSummary;
+    }
 
-        if (!summarySection) {
-            alert('No summary section found to export');
-            return;
-        }
-
-        const teamName = this.teamComposition.matchInfo.oppositeTeam || 'TBD';
+    public static async exportSummary(mode: SummaryExportMode): Promise<void> {
+        const teamName = this.teamCompositionSummary?.matchInfo.oppositeTeam || 'TBD';
         const fileName = `match-summary-montigny-vs-${teamName.toLowerCase().replace(/\s+/g, '-')}`;
 
-        return ExportHelper.exportSummaryAsImage(summarySection, fileName);
+        return ExportHelper.exportSummary(this.teamCompositionSummary!, fileName, mode);
     }
 
     private static updateModalContent(team: Team): void {
-        const modalContent = document.querySelector('.composition-modal-content');
+        const modalContent = document.querySelector('#composition-modal-content');
         if (modalContent) {
             const closeBtn = modalContent.querySelector('.composition-modal-close-btn');
             modalContent.innerHTML = this.createModalBody(team);
@@ -780,3 +743,5 @@ export class TeamCompositionModal {
 (window as any).TeamCompositionModal = TeamCompositionModal;
 
 export type { Team };
+export { PlayerLayout };
+export type { PlayerSectionOptions };

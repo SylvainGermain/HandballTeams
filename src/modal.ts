@@ -158,7 +158,7 @@ export class TeamDetailsModal {
             `;
 
             coaches.forEach((coach: Player) => {
-                playersHTML += PlayerHelper.createPlayer(coach, false);
+                playersHTML += PlayerHelper.createPlayer(coach, PlayerHelper.ShowAllWoStats);
             });
 
             playersHTML += `
@@ -205,7 +205,7 @@ export class TeamDetailsModal {
             `;
 
             regularPlayers.forEach((player: Player) => {
-                playersHTML += PlayerHelper.createPlayer(player);
+                playersHTML += PlayerHelper.createPlayer(player, PlayerHelper.ShowAll);
             });
 
             playersHTML += `

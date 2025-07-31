@@ -4,10 +4,39 @@ import backgroundImage from '../resources/background.png';
 export namespace PlayerHelper{
 const maxStat = 100;
 
-export function createPlayer(player: Player, showStats: boolean = true, customPosition?: string): string {
+
+export const ShowStats =     0x00000001;
+export const ShowAvatar =    0x00000010;
+export const ShowGroup =     0x00000100;
+export const ShowPosition =  0x00001000;
+export const ShowName =  0x00010000;
+
+export const ShowAll = ShowAvatar | ShowStats | ShowGroup | ShowPosition | ShowName;
+export const ShowAllWoStats = ShowAll & ~ShowStats;
+export const ShowMini = ShowName;
+
+export function createPlayer(player: Player, levelOfDetails: number, customPosition?: string): string {
   const outlineClass = getOutlineClass(player);
   const playerName = `${player.prenom} ${player.nom}`;
   const playerId = `player-${player.nom}-${player.prenom}`.replace(/\s+/g, '-').toLowerCase();
+
+
+  if (levelOfDetails === ShowMini) {
+    return `
+      <div class="player-card ${outlineClass}"
+           id="${playerId}"
+           style="background-image: url('${backgroundImage}');"
+           data-player-name="${playerName}"
+           ondblclick="handlePlayerCardDoubleClick(this)"
+           ontouchstart="handlePlayerCardTouchStart(this, event)"
+           ontouchend="handlePlayerCardTouchEnd(this, event)">
+
+          <!-- Player Avatar - Center of hexagon -->
+          <div class="player-name player-mini">
+            ${getDisplayedName(player)}
+          </div>
+      </div>`;
+  }
 
   return `
       <div class="player-card ${outlineClass}"
@@ -20,22 +49,23 @@ export function createPlayer(player: Player, showStats: boolean = true, customPo
 
           <!-- Player Info - Top of hexagon -->
           <div class="player-info">
-              ${customPosition ? getSinglePosteLabel(customPosition) : getPosteLabel(player)}
-              <h4 class="player-name">
+              ${levelOfDetails&ShowPosition ?
+                customPosition ? getSinglePosteLabel(customPosition) : getPosteLabel(player) : ''}
+              ${levelOfDetails&ShowName ? `<h4 class="player-name">
                   ${getDisplayedName(player)}
-              </h4>
+              </h4>` : ''}
           </div>
 
           <!-- Player group - Right of hexagon -->
-          ${getGroupDiv(player)}
+          ${levelOfDetails&ShowGroup ? getGroupDiv(player): ''}
 
           <!-- Player Avatar - Center of hexagon -->
-          <div class="player-avatar">
+           ${levelOfDetails&ShowAvatar ? `<div class="player-avatar">
               ${getAvatarInitial(player)}
-          </div>
+          </div>` : ''}
 
           <!-- Stats - Bottom region of hexagon -->
-          ${showStats ? `
+          ${levelOfDetails&ShowStats ? `
           <div class="player-stats">
               <div class="stats-grid">
                   ${createHexagonStat('PHY', player.physique)}
