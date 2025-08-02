@@ -15,9 +15,8 @@
 }
 
 
-/* Increase modal width when displaying summary content */
-.modal-content:has(.summary-content) {
-    max-width: 950px;
+.summary-content .players-section {
+    border-left:none;
 }
 
 .composition-modal-close-btn {

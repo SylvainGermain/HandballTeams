@@ -13,6 +13,7 @@ export const ShowName =  0x00010000;
 
 export const ShowAll = ShowAvatar | ShowStats | ShowGroup | ShowPosition | ShowName;
 export const ShowAllWoStats = ShowAll & ~ShowStats;
+export const ShowSummary = ShowPosition | ShowName;
 export const ShowMini = ShowName;
 
 export function createPlayer(player: Player, levelOfDetails: number, customPosition?: string): string {
@@ -37,7 +38,25 @@ export function createPlayer(player: Player, levelOfDetails: number, customPosit
           </div>
       </div>`;
   }
+  if (levelOfDetails === ShowSummary) {
+    return `
+      <div class="player-card ${outlineClass}"
+           id="${playerId}"
+           style="background-image: url('${backgroundImage}');"
+           data-player-name="${playerName}"
+           ondblclick="handlePlayerCardDoubleClick(this)"
+           ontouchstart="handlePlayerCardTouchStart(this, event)"
+           ontouchend="handlePlayerCardTouchEnd(this, event)">
 
+          <!-- Player Avatar - Center of hexagon -->
+          <div class="player-info">
+            ${customPosition ? getSinglePosteLabel(customPosition) : getPosteLabel(player)}
+          </div>
+          <div class="player-name player-mini">
+            ${getDisplayedName(player)}
+          </div>
+      </div>`;
+  }
   return `
       <div class="player-card ${outlineClass}"
            id="${playerId}"
@@ -51,9 +70,10 @@ export function createPlayer(player: Player, levelOfDetails: number, customPosit
           <div class="player-info">
               ${levelOfDetails&ShowPosition ?
                 customPosition ? getSinglePosteLabel(customPosition) : getPosteLabel(player) : ''}
-              ${levelOfDetails&ShowName ? `<h4 class="player-name">
+              ${levelOfDetails&ShowName ?
+                `<h4 class="player-name">
                   ${getDisplayedName(player)}
-              </h4>` : ''}
+                 </h4>` : ''}
           </div>
 
           <!-- Player group - Right of hexagon -->

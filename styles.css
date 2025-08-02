@@ -1165,9 +1165,8 @@ text-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 3
 }
 
 
-/* Increase modal width when displaying summary content */
-.modal-content:has(.summary-content) {
-    max-width: 950px;
+.summary-content .players-section {
+    border-left:none;
 }
 
 .composition-modal-close-btn {

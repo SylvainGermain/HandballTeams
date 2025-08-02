@@ -37,6 +37,7 @@ export class TeamCompositionModal {
                 substitutesCount: 0,
                 hasCoach: false
             },
+            matchResults: null,
             createdAt: new Date().toISOString()
         };
     }
@@ -80,15 +81,6 @@ export class TeamCompositionModal {
             this.teamCompositionSummary = cookieData.summaryJSON;
         } catch (error) {
             console.warn('Failed to load team composition from cookie:', error);
-        }
-    }
-
-    private static clearCookie(team: Team): void {
-        try {
-            // Remove the cookie by setting it to expire in the past
-            document.cookie = `teamComposition_${team.id}=; expires=Thu, 01 Jan 1970 00:00:00 UTC; path=/`;
-        } catch (error) {
-            console.warn('Failed to clear team composition cookie:', error);
         }
     }
 
@@ -156,6 +148,8 @@ export class TeamCompositionModal {
             content = this.createTeamSelectionStep(team);
         } else if (this.currentStep === 3) {
             content = this.createSummaryStep();
+        } else if (this.currentStep === 4) {
+            content = this.createMatchResultsStep();
         }
 
         return `
@@ -176,9 +170,13 @@ export class TeamCompositionModal {
                     <span class="step-number">2</span>
                     <span class="step-label">Team Selection</span>
                 </div>
-                <div class="step ${this.currentStep >= 3 ? 'active' : ''}">
+                <div class="step ${this.currentStep >= 3 ? 'active' : ''} ${this.currentStep > 3 ? 'completed' : ''}">
                     <span class="step-number">3</span>
                     <span class="step-label">Summary</span>
+                </div>
+                <div class="step ${this.currentStep >= 4 ? 'active' : ''}">
+                    <span class="step-number">4</span>
+                    <span class="step-label">Match Results</span>
                 </div>
             </div>
         `;
@@ -221,6 +219,7 @@ export class TeamCompositionModal {
                     </div>
                 </form>
                 <div class="step-actions">
+                    <button class="btn btn-warning" id="clear-match-data-btn" title="Clear all match information">🗑️ Clear Match Data</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
                 </div>
             </div>
@@ -427,6 +426,12 @@ export class TeamCompositionModal {
                     </div>
                 </div>
 
+                <div class="step-actions">
+                    <button class="btn btn-secondary" id="prev-step-btn-top">Previous</button>
+                    <button class="btn btn-warning" id="clear-saved-btn-top" title="Clear all saved player selections">🗑️ Clear Saved Data</button>
+                    <button class="btn btn-primary" id="next-step-btn-top">Next Step</button>
+                </div>
+
                 <div class="team-selection-container">
                     <div class="major-players-section">
                         <h3>Major Players (8 positions including Coach)</h3>
@@ -461,7 +466,7 @@ export class TeamCompositionModal {
 
         // Default options for the summary step
         const stack: PlayerSectionOptions = {
-            layout: PlayerLayout.STACK
+            layout: PlayerLayout.GRID
         };
 
         return `
@@ -473,23 +478,109 @@ export class TeamCompositionModal {
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
                     <button class="btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
-                    <button class="btn btn-success" id="finish-composition-btn">End</button>
+                    <button class="btn btn-primary" id="next-step-btn">Next Step</button>
+                </div>
+            </div>
+        `;
+    }
+
+    private static createMatchResultsStep(): string {
+        const matchResults = this.teamCompositionSummary?.matchResults || {
+            homeScore: 0,
+            awayScore: 0,
+            matchStatus: 'pending' as const,
+            highlights: [],
+            postMatchNotes: ''
+        };
+
+        const matchInfo = this.teamCompositionSummary?.matchInfo || {
+            oppositeTeam: 'TBD',
+            location: 'TBD',
+            date: 'TBD',
+            time: 'TBD',
+            meetingPlace: 'TBD'
+        };
+
+        return `
+            <div class="step-content">
+                <h3>Match Results</h3>
+                <div class="match-results-form">
+                    <div class="score-section">
+                        <h4>Final Score</h4>
+                        <div class="score-input-container">
+                            <div class="team-score">
+                                <label for="home-score">Montigny:</label>
+                                <input type="number" id="home-score" value="${matchResults.homeScore}" min="0" max="99">
+                            </div>
+                            <div class="score-separator">-</div>
+                            <div class="team-score">
+                                <label for="away-score">${matchInfo.oppositeTeam}:</label>
+                                <input type="number" id="away-score" value="${matchResults.awayScore}" min="0" max="99">
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="match-status-section">
+                        <h4>Match Status</h4>
+                        <div class="status-buttons">
+                            <button class="btn status-btn ${matchResults.matchStatus === 'victory' ? 'active' : ''}" data-status="victory">🏆 Victory</button>
+                            <button class="btn status-btn ${matchResults.matchStatus === 'defeat' ? 'active' : ''}" data-status="defeat">😔 Defeat</button>
+                            <button class="btn status-btn ${matchResults.matchStatus === 'draw' ? 'active' : ''}" data-status="draw">🤝 Draw</button>
+                            <button class="btn status-btn ${matchResults.matchStatus === 'pending' ? 'active' : ''}" data-status="pending">⏳ Pending</button>
+                        </div>
+                    </div>
+
+                    <div class="highlights-section">
+                        <h4>Match Highlights</h4>
+                        <div class="highlights-container">
+                            ${matchResults.highlights.map((highlight, index) => `
+                                <div class="highlight-item">
+                                    <input type="text" class="highlight-input" data-index="${index}" value="${highlight}" placeholder="Enter match highlight">
+                                    <button class="btn btn-remove-small" onclick="TeamCompositionModal.removeHighlight(${index})">×</button>
+                                </div>
+                            `).join('')}
+                            <button class="btn btn-add-small" id="add-highlight-btn">+ Add Highlight</button>
+                        </div>
+                    </div>
+
+                    <div class="post-match-notes-section">
+                        <h4>Post-Match Notes</h4>
+                        <textarea id="post-match-notes" placeholder="Add any additional notes about the match...">${matchResults.postMatchNotes}</textarea>
+                    </div>
+                </div>
+
+                <div class="step-actions">
+                    <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <button class="btn btn-export" id="export-match-result-btn">📱 Export for Social Media</button>
+                    <button class="btn btn-success" id="finish-composition-btn">Finish</button>
                 </div>
             </div>
         `;
     }
 
     private static addEventListeners(team: Team): void {
-        // Next step button
-        const nextBtn = document.getElementById('next-step-btn');
-        if (nextBtn) {
-            nextBtn.addEventListener('click', () => this.nextStep(team));
-        }
+        // Next step buttons (both top and bottom)
+        const nextBtns = document.querySelectorAll('#next-step-btn, #next-step-btn-top');
+        nextBtns.forEach(btn => {
+            btn.addEventListener('click', () => this.nextStep(team));
+        });
 
-        // Previous step button
-        const prevBtn = document.getElementById('prev-step-btn');
-        if (prevBtn) {
-            prevBtn.addEventListener('click', () => this.previousStep(team));
+        // Previous step buttons (both top and bottom)
+        const prevBtns = document.querySelectorAll('#prev-step-btn, #prev-step-btn-top');
+        prevBtns.forEach(btn => {
+            btn.addEventListener('click', () => this.previousStep(team));
+        });
+
+        // Clear saved data buttons (both top and bottom)
+        const clearBtns = document.querySelectorAll('#clear-saved-btn, #clear-saved-btn-top');
+        clearBtns.forEach(btn => {
+            btn.addEventListener('click', () => this.clearSavedData(team));
+        });
+
+        // Clear match data button (step 1 only)
+        const clearMatchDataBtn = document.getElementById('clear-match-data-btn');
+        if (clearMatchDataBtn) {
+            clearMatchDataBtn.addEventListener('click', () => this.clearMatchData(team));
         }
 
         // Finish composition button
@@ -508,12 +599,6 @@ export class TeamCompositionModal {
         const addSubBtn = document.getElementById('add-substitute-btn');
         if (addSubBtn) {
             addSubBtn.addEventListener('click', () => this.addSubstitute(team));
-        }
-
-        // Clear saved data button
-        const clearBtn = document.getElementById('clear-saved-btn');
-        if (clearBtn) {
-            clearBtn.addEventListener('click', () => this.clearSavedData(team));
         }
 
         // Player selection for major positions
@@ -535,12 +620,62 @@ export class TeamCompositionModal {
                 this.updateSubstitute(index, target.value, team);
             });
         });
+
+        // Match results event listeners
+        this.addMatchResultsEventListeners(team);
+    }
+
+    private static addMatchResultsEventListeners(team: Team): void {
+        // Score inputs
+        const homeScoreInput = document.getElementById('home-score') as HTMLInputElement;
+        const awayScoreInput = document.getElementById('away-score') as HTMLInputElement;
+
+        if (homeScoreInput) {
+            homeScoreInput.addEventListener('change', () => this.updateMatchResults(team));
+        }
+        if (awayScoreInput) {
+            awayScoreInput.addEventListener('change', () => this.updateMatchResults(team));
+        }
+
+        // Status buttons
+        const statusBtns = document.querySelectorAll('.status-btn');
+        statusBtns.forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                const target = e.target as HTMLButtonElement;
+                const status = target.dataset.status as 'victory' | 'defeat' | 'draw' | 'pending';
+                this.setMatchStatus(status, team);
+            });
+        });
+
+        // Highlight inputs
+        const highlightInputs = document.querySelectorAll('.highlight-input');
+        highlightInputs.forEach(input => {
+            input.addEventListener('change', () => this.updateMatchResults(team));
+        });
+
+        // Add highlight button
+        const addHighlightBtn = document.getElementById('add-highlight-btn');
+        if (addHighlightBtn) {
+            addHighlightBtn.addEventListener('click', () => this.addHighlight(team));
+        }
+
+        // Post-match notes
+        const postMatchNotes = document.getElementById('post-match-notes') as HTMLTextAreaElement;
+        if (postMatchNotes) {
+            postMatchNotes.addEventListener('change', () => this.updateMatchResults(team));
+        }
+
+        // Export match result button
+        const exportMatchResultBtn = document.getElementById('export-match-result-btn');
+        if (exportMatchResultBtn) {
+            exportMatchResultBtn.addEventListener('click', () => this.exportMatchResults());
+        }
     }
 
     private static nextStep(team: Team): void {
         if (this.currentStep === 1) {
             if (this.validateMatchInfo()) {
-                this.saveMatchInfo();
+                this.saveMatchInfo(team);
                 this.currentStep = 2;
                 this.updateModalContent(team);
             }
@@ -549,6 +684,9 @@ export class TeamCompositionModal {
                 this.currentStep = 3;
                 this.updateModalContent(team);
             }
+        } else if (this.currentStep === 3) {
+            this.currentStep = 4;
+            this.updateModalContent(team);
         }
     }
 
@@ -576,7 +714,7 @@ export class TeamCompositionModal {
         return true;
     }
 
-    private static saveMatchInfo(): void {
+    private static saveMatchInfo(team: Team): void {
 
         this.teamCompositionSummary!.matchInfo = {
             oppositeTeam: (document.getElementById('opposite-team') as HTMLInputElement).value || 'TBD',
@@ -585,6 +723,9 @@ export class TeamCompositionModal {
             time: (document.getElementById('match-time') as HTMLInputElement).value || 'TBD',
             meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD'
         };
+
+        // Save the updated match info to cookies
+        this.saveToCookie(team);
     }
 
     private static updateMajorPlayer(position: string, playerName: string, team: Team): void {
@@ -672,15 +813,210 @@ export class TeamCompositionModal {
 
     public static clearSavedData(team: Team): void {
         // Ask for confirmation before clearing
-        if (confirm('Are you sure you want to clear all saved player selections? This cannot be undone.')) {
-            // Clear the cookie
-            this.clearCookie(team);
+        if (confirm('Are you sure you want to clear all saved player selections? This will keep match information but clear all player selections.')) {
+            // Store current match info before clearing
+            const currentMatchInfo = this.teamCompositionSummary?.matchInfo || this.initComposition().matchInfo;
+
             // Reset composition to blank state
             this.resetComposition();
+
+            // Restore the match info
+            this.teamCompositionSummary!.matchInfo = currentMatchInfo;
+
+            // Save to cookie to persist the cleared composition with preserved match info
+            this.saveToCookie(team);
             // Update the modal content to reflect the cleared state
             this.updateModalContent(team);
             // Show confirmation message
-            alert('Saved player selections have been cleared successfully.');
+            alert('Player selections have been cleared successfully. Match information has been preserved.');
+        }
+    }
+
+    public static clearMatchData(team: Team): void {
+        // Ask for confirmation before clearing
+        if (confirm('Are you sure you want to clear all match information? This will only clear the match details, not player selections.')) {
+            // Reset only the match info
+            this.teamCompositionSummary!.matchInfo = {
+                oppositeTeam: '',
+                location: '',
+                date: '',
+                time: '',
+                meetingPlace: ''
+            };
+            // Save to cookie to persist the cleared match data
+            this.saveToCookie(team);
+            // Update the modal content to reflect the cleared match info
+            this.updateModalContent(team);
+            // Show confirmation message
+            alert('Match information has been cleared successfully.');
+        }
+    }
+
+    // Match Results Methods
+    private static updateMatchResults(team: Team): void {
+        if (!this.teamCompositionSummary) return;
+
+        // Initialize matchResults if it doesn't exist
+        if (!this.teamCompositionSummary.matchResults) {
+            this.teamCompositionSummary.matchResults = {
+                homeScore: 0,
+                awayScore: 0,
+                matchStatus: 'pending',
+                highlights: [],
+                postMatchNotes: ''
+            };
+        }
+
+        // Update scores
+        const homeScoreInput = document.getElementById('home-score') as HTMLInputElement;
+        const awayScoreInput = document.getElementById('away-score') as HTMLInputElement;
+
+        if (homeScoreInput) {
+            this.teamCompositionSummary.matchResults.homeScore = parseInt(homeScoreInput.value) || 0;
+        }
+        if (awayScoreInput) {
+            this.teamCompositionSummary.matchResults.awayScore = parseInt(awayScoreInput.value) || 0;
+        }
+
+        // Update highlights
+        const highlightInputs = document.querySelectorAll('.highlight-input') as NodeListOf<HTMLInputElement>;
+        this.teamCompositionSummary.matchResults.highlights = Array.from(highlightInputs)
+            .map(input => input.value.trim())
+            .filter(value => value !== '');
+
+        // Update post-match notes
+        const postMatchNotes = document.getElementById('post-match-notes') as HTMLTextAreaElement;
+        if (postMatchNotes) {
+            this.teamCompositionSummary.matchResults.postMatchNotes = postMatchNotes.value;
+        }
+
+        // Auto-determine match status based on scores if not manually set
+        if (this.teamCompositionSummary.matchResults.matchStatus === 'pending') {
+            const homeScore = this.teamCompositionSummary.matchResults.homeScore;
+            const awayScore = this.teamCompositionSummary.matchResults.awayScore;
+
+            if (homeScore > awayScore) {
+                this.teamCompositionSummary.matchResults.matchStatus = 'victory';
+            } else if (homeScore < awayScore) {
+                this.teamCompositionSummary.matchResults.matchStatus = 'defeat';
+            } else if (homeScore === awayScore && homeScore > 0) {
+                this.teamCompositionSummary.matchResults.matchStatus = 'draw';
+            }
+        }
+
+        // Save to cookie
+        this.saveToCookie(team);
+    }
+
+    private static setMatchStatus(status: 'victory' | 'defeat' | 'draw' | 'pending', team: Team): void {
+        if (!this.teamCompositionSummary) return;
+
+        // Initialize matchResults if it doesn't exist
+        if (!this.teamCompositionSummary.matchResults) {
+            this.teamCompositionSummary.matchResults = {
+                homeScore: 0,
+                awayScore: 0,
+                matchStatus: 'pending',
+                highlights: [],
+                postMatchNotes: ''
+            };
+        }
+
+        this.teamCompositionSummary.matchResults.matchStatus = status;
+
+        // Update button states
+        const statusBtns = document.querySelectorAll('.status-btn');
+        statusBtns.forEach(btn => {
+            btn.classList.remove('active');
+            if (btn.getAttribute('data-status') === status) {
+                btn.classList.add('active');
+            }
+        });
+
+        // Save to cookie
+        this.saveToCookie(team);
+    }
+
+    public static addHighlight(team: Team): void {
+        if (!this.teamCompositionSummary) return;
+
+        // Initialize matchResults if it doesn't exist
+        if (!this.teamCompositionSummary.matchResults) {
+            this.teamCompositionSummary.matchResults = {
+                homeScore: 0,
+                awayScore: 0,
+                matchStatus: 'pending',
+                highlights: [],
+                postMatchNotes: ''
+            };
+        }
+
+        this.teamCompositionSummary.matchResults.highlights.push('');
+        this.saveToCookie(team);
+        this.updateModalContent(team);
+    }
+
+    public static removeHighlight(index: number): void {
+        if (!this.teamCompositionSummary?.matchResults) return;
+
+        this.teamCompositionSummary.matchResults.highlights.splice(index, 1);
+        // For simplicity, we'll reload the modal - in a real app you'd want better state management
+        const team = { id: 'current', name: 'Current Team', description: '' }; // This is a simplified approach
+        this.updateModalContent(team);
+    }
+
+    private static async exportMatchResults(): Promise<void> {
+        if (!this.teamCompositionSummary?.matchResults) {
+            alert('No match results to export.');
+            return;
+        }
+
+        const matchInfo = this.teamCompositionSummary.matchInfo;
+        const matchResults = this.teamCompositionSummary.matchResults;
+
+        // Create a simple text summary for now
+        let exportText = `🏐 MATCH RESULT 🏐\n\n`;
+        exportText += `Montigny ${matchResults.homeScore} - ${matchResults.awayScore} ${matchInfo.oppositeTeam}\n\n`;
+
+        if (matchResults.matchStatus === 'victory') {
+            exportText += `🏆 VICTORY! 🏆\n\n`;
+        } else if (matchResults.matchStatus === 'defeat') {
+            exportText += `😔 Tough loss, but we'll come back stronger! 💪\n\n`;
+        } else if (matchResults.matchStatus === 'draw') {
+            exportText += `🤝 Hard-fought draw! \n\n`;
+        }
+
+        if (matchResults.highlights.length > 0) {
+            exportText += `📋 Match Highlights:\n`;
+            matchResults.highlights.forEach(highlight => {
+                if (highlight.trim()) {
+                    exportText += `• ${highlight}\n`;
+                }
+            });
+            exportText += `\n`;
+        }
+
+        if (matchResults.postMatchNotes) {
+            exportText += `📝 ${matchResults.postMatchNotes}\n\n`;
+        }
+
+        exportText += `📍 ${matchInfo.location}\n`;
+        exportText += `📅 ${matchInfo.date}\n\n`;
+        exportText += `#Handball #Montigny #TeamSpirit`;
+
+        // Copy to clipboard
+        try {
+            await navigator.clipboard.writeText(exportText);
+            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
+        } catch (err) {
+            // Fallback for older browsers
+            const textArea = document.createElement('textarea');
+            textArea.value = exportText;
+            document.body.appendChild(textArea);
+            textArea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textArea);
+            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
         }
     }
 

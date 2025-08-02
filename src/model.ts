@@ -46,6 +46,15 @@ export interface MatchInfo {
     meetingPlace: string;
 }
 
+// Interface for match results
+export interface MatchResults {
+    homeScore: number;
+    awayScore: number;
+    matchStatus: 'victory' | 'defeat' | 'draw' | 'pending';
+    highlights: string[];
+    postMatchNotes: string;
+}
+
 // Interface for team composition
 export interface TeamComposition {
     matchInfo: MatchInfo;
@@ -74,5 +83,6 @@ export interface TeamCompositionSummary {
     coach: Player | null;
     substitutes: Player[];
     summary: SummaryStats;
+    matchResults: MatchResults | null;
     createdAt: string;
 }

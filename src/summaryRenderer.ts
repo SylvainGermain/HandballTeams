@@ -45,8 +45,8 @@ export class SummaryRenderer {
         return `
             <div class="players-summary ${layoutClass}">
                 <div class="section-wrapper">
-                    <h3 class="section-heading">Selection (${summary.majorPlayers.length})</h3>
-                    <div class="players-section">
+                    <h3 class="section-heading">Selection (${summary.majorPlayers.length + summary.substitutes.length})</h3>
+                    <div class="players-section" style="background-image: url('${landImage}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
                         ${majorPlayersHTML}
                         ${substitutesHTML}
                     </div>
@@ -63,6 +63,7 @@ export class SummaryRenderer {
             </div>
         `;
     }
+
 
     private static createPlayersAndCoachSectionTactic(summary: TeamCompositionSummary, _: PlayerSectionOptions): string {
 
