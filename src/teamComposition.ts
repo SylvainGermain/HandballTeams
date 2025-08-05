@@ -115,12 +115,12 @@ export class TeamCompositionModal {
         modalOverlay.appendChild(modalContent);
         document.body.appendChild(modalOverlay);
 
-        // Close modal when clicking outside
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                this.closeModal(modalOverlay);
-            }
-        });
+        // // Close modal when clicking outside
+        // modalOverlay.addEventListener('mousedown', (e) => {
+        //     if (e.target === modalOverlay) {
+        //         this.closeModal(modalOverlay);
+        //     }
+        // });
 
         // Close modal with Escape key
         const handleEscape = (e: KeyboardEvent) => {
@@ -191,13 +191,28 @@ export class TeamCompositionModal {
             meetingPlace: ''
         };
 
+        // Get adversaire data for the dropdown
+        let adversaireOptions = '';
+        try {
+            const adversaires = Resources.getAdversaire(''); // Empty string as parameter since it's not used
+            adversaireOptions = adversaires.map(adversaire => {
+                return `<option value="${adversaire.nom}"></option>`;
+            }).join('');
+        } catch (error) {
+            console.warn('Failed to load adversaire data:', error);
+            // Fallback to empty options if adversaire data is not available
+        }
+
         return `
             <div class="step-content">
                 <h3>Match Information</h3>
                 <form class="match-info-form">
                     <div class="form-group-compo">
                         <label for="opposite-team">Opposite Team:</label>
-                        <input type="text" id="opposite-team" value="${matchInfo.oppositeTeam}" placeholder="Enter opponent team name">
+                        <input type="text" id="opposite-team" list="adversaire-list" value="${matchInfo.oppositeTeam}" placeholder="Select from list or type opponent team name" autocomplete="off">
+                        <datalist id="adversaire-list">
+                            ${adversaireOptions}
+                        </datalist>
                     </div>
                     <div class="form-group-compo">
                         <label for="location">Location:</label>
@@ -218,8 +233,12 @@ export class TeamCompositionModal {
                         <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Enter meeting location">
                     </div>
                 </form>
+
                 <div class="step-actions">
                     <button class="btn btn-warning" id="clear-match-data-btn" title="Clear all match information">🗑️ Clear Match Data</button>
+                    <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="all">
+                    <button class="btn btn-info" id="load-composition-btn">📁 Load Match </button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
                 </div>
             </div>
@@ -429,6 +448,9 @@ export class TeamCompositionModal {
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn-top">Previous</button>
                     <button class="btn btn-warning" id="clear-saved-btn-top" title="Clear all saved player selections">🗑️ Clear Saved Data</button>
+                    <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="composition">
+                    <button class="btn btn-info" id="load-composition-btn" load-mode="composition">📁 Load Composition</button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
                     <button class="btn btn-primary" id="next-step-btn-top">Next Step</button>
                 </div>
 
@@ -478,6 +500,7 @@ export class TeamCompositionModal {
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
                     <button class="btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
                 </div>
             </div>
@@ -551,6 +574,8 @@ export class TeamCompositionModal {
 
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="all">
+                    <button class="btn btn-info" id="load-composition-btn">📁 Load Match </button>
                     <button class="btn btn-export" id="export-match-result-btn">📱 Export for Social Media</button>
                     <button class="btn btn-success" id="finish-composition-btn">Finish</button>
                 </div>
@@ -593,6 +618,30 @@ export class TeamCompositionModal {
         const exportBtn = document.getElementById('export-summary-btn');
         if (exportBtn) {
             exportBtn.addEventListener('click', () => this.exportSummary(SummaryExportMode.PREMATCH));
+        }
+
+        // Save composition button
+        const saveCompositionBtn = document.getElementById('save-composition-btn');
+        if (saveCompositionBtn) {
+            saveCompositionBtn.addEventListener('click', () => this.saveCompositionToFile());
+        }
+
+        // Load composition button and file input
+        const loadCompositionBtn = document.getElementById('load-composition-btn');
+        const loadCompositionFile = document.getElementById('load-composition-file') as HTMLInputElement;
+
+        if (loadCompositionBtn) {
+            loadCompositionBtn.addEventListener('click', () => {
+                loadCompositionFile?.click();
+            });
+        }
+
+        if (loadCompositionFile) {
+            loadCompositionFile.addEventListener('change', (eL: Event) => {
+                const target = eL.target as HTMLInputElement;
+                const onlyComposition = target.getAttribute('data-team-id') === 'composition';
+                this.loadCompositionFromFile(eL, team, onlyComposition);
+            });
         }
 
         // Add substitute button
@@ -715,9 +764,11 @@ export class TeamCompositionModal {
     }
 
     private static saveMatchInfo(team: Team): void {
+        // Get opposite team value from the input field (which can be filled from datalist or typed manually)
+        const oppositeTeamInput = document.getElementById('opposite-team') as HTMLInputElement;
 
         this.teamCompositionSummary!.matchInfo = {
-            oppositeTeam: (document.getElementById('opposite-team') as HTMLInputElement).value || 'TBD',
+            oppositeTeam: oppositeTeamInput?.value || 'TBD',
             location: (document.getElementById('location') as HTMLInputElement).value || 'TBD',
             date: (document.getElementById('match-date') as HTMLInputElement).value || 'TBD',
             time: (document.getElementById('match-time') as HTMLInputElement).value || 'TBD',
@@ -726,9 +777,7 @@ export class TeamCompositionModal {
 
         // Save the updated match info to cookies
         this.saveToCookie(team);
-    }
-
-    private static updateMajorPlayer(position: string, playerName: string, team: Team): void {
+    }    private static updateMajorPlayer(position: string, playerName: string, team: Team): void {
 
         const players = Resources.getPlayersData(team.id);
         const player = players.find(p => this.getDisplayedName(p) === playerName);
@@ -1018,6 +1067,114 @@ export class TeamCompositionModal {
             document.body.removeChild(textArea);
             alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
         }
+    }
+
+    private static saveCompositionToFile(): void {
+        if (!this.teamCompositionSummary) {
+            alert('No team composition to save.');
+            return;
+        }
+
+        try {
+            // Create a blob with the team composition data
+            const compositionData = {
+                version: '1.0',
+                savedAt: new Date().toISOString(),
+                teamComposition: this.teamCompositionSummary
+            };
+
+            const jsonString = JSON.stringify(compositionData, null, 2);
+            const blob = new Blob([jsonString], { type: 'application/json' });
+
+            // Create download link
+            const url = URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+
+            // Generate filename based on match info
+            const matchInfo = this.teamCompositionSummary.matchInfo;
+            const opponentName = matchInfo.oppositeTeam || 'Unknown';
+            const matchDate = matchInfo.date || 'NoDate';
+            a.download = `team-composition-vs-${opponentName.toLowerCase().replace(/\s+/g, '-')}-${matchDate}.json`;
+
+            // Trigger download
+            document.body.appendChild(a);
+            a.click();
+            document.body.removeChild(a);
+            URL.revokeObjectURL(url);
+
+            alert('Team composition saved successfully! 💾');
+        } catch (error) {
+            console.error('Failed to save team composition:', error);
+            alert('Failed to save team composition. Please try again.');
+        }
+    }
+
+    private static loadCompositionFromFile(event: Event, team: Team, onlyComposition: boolean): void {
+        const input = event.target as HTMLInputElement;
+        const file = input.files?.[0];
+
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = (e) => {
+            try {
+                const jsonContent = e.target?.result as string;
+                const loadedData = JSON.parse(jsonContent);
+
+                // Validate the loaded data structure
+                if (!loadedData.teamComposition) {
+                    throw new Error('Invalid file format: missing teamComposition data');
+                }
+
+                const loadedComposition = loadedData.teamComposition as TeamCompositionSummary;
+
+                // Validate required fields
+                if (!loadedComposition.matchInfo || !loadedComposition.summary) {
+                    throw new Error('Invalid file format: missing required fields');
+                }
+
+                // Ask for confirmation before replacing current data
+
+
+                const confirmMessage = onlyComposition ?
+                        `This will replace your current team composition with the loaded data.\n\nLoaded composition:\n- Players: ${loadedComposition.summary.totalPlayers}\n\nDo you want to continue?` :
+                        `This will replace your current match information and team composition with the loaded data.\n\nLoaded match information:\n- Opponent: ${loadedComposition.matchInfo.oppositeTeam || 'TBD'}\n- Date: ${loadedComposition.matchInfo.date || 'TBD'}\n- Players: ${loadedComposition.summary.totalPlayers}\n\nDo you want to continue?`;
+
+                if (confirm(confirmMessage)) {
+                    // Replace current composition with loaded data
+                    if (onlyComposition) {
+                        this.teamCompositionSummary.majorPlayers = loadedComposition.majorPlayers;
+                        this.teamCompositionSummary.coach = loadedComposition.coach;
+                        this.teamCompositionSummary.substitutes = loadedComposition.substitutes;
+                    } else {
+                        this.teamCompositionSummary = loadedComposition;
+                    }
+
+                    this.updateSummaryCounts();
+// Save to cookie for persistence
+                    this.saveToCookie(team);
+
+                    // Update the modal content to reflect the loaded data
+                    this.updateModalContent(team);
+
+                    alert('Team composition loaded successfully! 📁');
+                }
+            } catch (error) {
+                console.error('Failed to load team composition:', error);
+                alert('Failed to load team composition. Please ensure you selected a valid composition file.');
+            } finally {
+                // Clear the file input
+                input.value = '';
+            }
+        };
+
+        reader.onerror = () => {
+            alert('Failed to read the file. Please try again.');
+            input.value = '';
+        };
+
+        reader.readAsText(file);
     }
 
     public static removeSubstitute(index: number): void {

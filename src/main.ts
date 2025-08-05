@@ -4,6 +4,7 @@ import { TeamDetailsModal} from './modal';
 import { type Team } from './model';
 import { TeamCompositionModal } from './teamComposition';
 import { Resources } from './resources';
+import asmbhLogo from '../resources/ASMBH_Logo.png';
 
 class HandballTeamsApp {
     private teams: Team[];
@@ -30,7 +31,10 @@ class HandballTeamsApp {
         splashOverlay.innerHTML = `
             <div class="splash-content">
                 <div class="splash-header">
-                    <h1>🐊Handball Teams</h1>
+                    <div class="splash-logo">
+                        <img src="${asmbhLogo}" alt="ASMBH Logo" class="logo-image" />
+                    </div>
+                    <h1>Handball Teams</h1>
                     <p>Team Management System</p>
                 </div>
                 <div class="splash-form">

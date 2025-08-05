@@ -2,7 +2,9 @@ import U18PlayersData from '../resources/U18Players.json';
 import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import SMPlayersData from '../resources/SMPlayers.json';
-import { Player } from './model';
+import AdversaireData from '../resources/adversaire.json';
+
+import { Adversaire, Player } from './model';
 
 async function getCryptoKey(password: string) {
     const encoder = new TextEncoder();
@@ -56,7 +58,7 @@ async function decryptText(encryptedData: {
     return decoder.decode(decrypted);
 }
 
- async function getAsyncPlayersData(teamId: string, privateKey: string) {
+async function getAsyncPlayersData(teamId: string, privateKey: string) {
     const cached = cache.get(teamId);
     if (cached) {
       return cached;
@@ -75,9 +77,26 @@ async function decryptText(encryptedData: {
     const players =  JSON.parse(data) as Player[]
     cache.set(teamId, players);
     return players;
-  }
+}
 
-const cache = new Map<string, Player[]>();
+async function getAsyncAdversaireData(privateKey: string) {
+    const cached = cache.get('adversaire');
+    if (cached) {
+      return cached;
+    }
+    const cipherData = AdversaireData.encrypted;
+
+    if (cipherData === undefined) {
+      throw new Error('Unknown team ID');
+    }
+
+    const data = await decryptText(cipherData, privateKey);
+    const decryptedData =  JSON.parse(data) as any[]
+    cache.set('adversaire', decryptedData);
+    return decryptedData;
+}
+
+const cache = new Map<string, Player[]|Adversaire[]>();
 
 export namespace Resources {
   export async function loadResources(privateKey: string) {
@@ -85,12 +104,22 @@ export namespace Resources {
     await getAsyncPlayersData('U15', privateKey);
     await getAsyncPlayersData('U13', privateKey);
     await getAsyncPlayersData('SM', privateKey);
+    await getAsyncAdversaireData(privateKey);
+  }
+
+
+  export function getAdversaire(_: string): Adversaire[] {
+    const cached = cache.get('adversaire');
+    if (cached) {
+      return cached as Adversaire[];
+    }
+    throw new Error('Resource not found for team ID');
   }
 
   export function getPlayersData(teamId: string): Player[] {
     const cached = cache.get(teamId);
     if (cached) {
-      return cached;
+      return cached as Player[];
     }
     throw new Error('Resource not found for team ID');
   }

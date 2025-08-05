@@ -4,12 +4,14 @@
   --background-color3: #0f5c2a;
   /* --background-color2: linear-gradient(135deg, #1CB651 0%, #000000 100%); */
   --font-color1: white;
+  --font-color4: #DDDDDD;
   --font-color2: #AAAAAA;
   --font-color3: black;
 
   --limiter-color1: white;
 
   --glowing-shadow: 0 0 5px #FFF, 0 0 10px #FFF, 0 0 15px #FFF, 0 0 20px #49ff18, 0 0 30px #49FF18, 0 0 40px #49FF18, 0 0 55px #49FF18, 0 0 75px #49ff18;
+
 }
 
 body {
@@ -229,6 +231,26 @@ h1 {
     font-size: 1.1rem;
     margin-bottom: 30px;
     font-weight: 500;
+}
+
+.splash-logo {
+    display: flex;
+    justify-content: center;
+    margin-bottom: 20px;
+}
+
+.logo-image {
+    max-width: 120px;
+    max-height: 120px;
+    width: auto;
+    height: auto;
+    border-radius: 10px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+    transition: transform 0.3s ease;
+}
+
+.logo-image:hover {
+    transform: scale(1.05);
 }
 
 .splash-form {

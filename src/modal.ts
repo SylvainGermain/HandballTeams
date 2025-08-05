@@ -79,11 +79,11 @@ export class TeamDetailsModal {
         document.body.appendChild(modalOverlay);
 
         // Close modal when clicking outside
-        modalOverlay.addEventListener('click', (e) => {
-            if (e.target === modalOverlay) {
-                this.closeModal(modalOverlay);
-            }
-        });
+        // modalOverlay.addEventListener('mousedown', (e) => {
+        //     if (e.target === modalOverlay) {
+        //         this.closeModal(modalOverlay);
+        //     }
+        // });
 
         // Close modal with Escape key
         const handleEscape = (e: KeyboardEvent) => {

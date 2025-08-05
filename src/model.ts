@@ -15,6 +15,11 @@ export interface Player {
     groupe: string;
 };
 
+export interface Adversaire {
+    nom: string;
+    shortname: string;
+};
+
 // Interface for team data (importing from main)
 export interface Team {
     id: string;

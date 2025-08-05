@@ -15,9 +15,74 @@ export interface PlayerSectionOptions {
 export class SummaryRenderer {
     static createSummaryTitle(summary: TeamCompositionSummary): string {
         return `
-            <h1 class="match-day-title">Match Day</h1>
-            <h2 class="match-title">Montigny vs ${summary.matchInfo.oppositeTeam || 'TBD'}</h2>
+            <div class="match-glow">
+                <h1 class="match-day-title">Match Day</h1>
+                <h2 class="match-title">
+                    <span class="home-team-name">Montigny</span>
+                    <span class="match-day-titler">vs</span>
+                    <span class="away-team-name">${summary.matchInfo.oppositeTeam || 'TBD'}</span>
+                </h2>
+            </div>
         `;
+
+        // const matchDate = summary.matchInfo.date ? new Date(summary.matchInfo.date).toLocaleDateString('fr-FR', {
+        //     weekday: 'long',
+        //     year: 'numeric',
+        //     month: 'long',
+        //     day: 'numeric'
+        // }) : 'Date TBD';
+
+        // const matchTime = summary.matchInfo.time || 'Time TBD';
+        // const location = summary.matchInfo.location || 'Location TBD';
+        // const opponent = summary.matchInfo.oppositeTeam || 'TBD';
+
+        // return `
+        //     <div class="competition-header">
+        //         <div class="competition-badge">
+        //             <span class="competition-icon">🏐</span>
+        //             <span class="competition-text">HANDBALL CHAMPIONSHIP</span>
+        //         </div>
+
+        //         <div class="match-showcase">
+        //             <div class="team-vs-container">
+        //                 <div class="home-team">
+        //                     <div class="team-name">MONTIGNY</div>
+        //                     <div class="team-badge">🔵</div>
+        //                 </div>
+
+        //                 <div class="vs-divider">
+        //                     <span class="vs-text">VS</span>
+        //                     <div class="vs-decoration"></div>
+        //                 </div>
+
+        //                 <div class="away-team">
+        //                     <div class="team-name">${opponent.toUpperCase()}</div>
+        //                     <div class="team-badge">🔴</div>
+        //                 </div>
+        //             </div>
+
+        //             <div class="match-info-banner">
+        //                 <div class="match-detail">
+        //                     <span class="detail-icon">📅</span>
+        //                     <span class="detail-text">${matchDate}</span>
+        //                 </div>
+        //                 <div class="match-detail">
+        //                     <span class="detail-icon">⏰</span>
+        //                     <span class="detail-text">${matchTime}</span>
+        //                 </div>
+        //                 <div class="match-detail">
+        //                     <span class="detail-icon">📍</span>
+        //                     <span class="detail-text">${location}</span>
+        //                 </div>
+        //             </div>
+        //         </div>
+
+        //         <div class="competition-subtitle">
+        //             <span class="subtitle-text">OFFICIAL TEAM LINEUP</span>
+        //             <div class="subtitle-underline"></div>
+        //         </div>
+        //     </div>
+        // `;
     }
 
     static createPlayersAndCoachSection(summary: TeamCompositionSummary, options: PlayerSectionOptions): string {
