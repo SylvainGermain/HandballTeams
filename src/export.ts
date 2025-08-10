@@ -347,7 +347,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
           quality: 10, // Lower is better quality (1-30)
           width: frames[0].width,
           height: frames[0].height,
-          workerScript: './gif.worker.js', // Use local gif.worker.js from root level
+          workerScript: './gif.worker.js', // Use gif.worker.js (webpack will handle the correct path)
           repeat: 0, // 0 = loop forever, -1 = no loop, n = loop n times
           transparent: null // No transparency
       });

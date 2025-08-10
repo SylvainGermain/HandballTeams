@@ -63,7 +63,10 @@ async function encryptText(text, salt, iv, password) {
 
 function convertSheet(sheet, sheetName, outputDir, password) {
   console.log('Converting ', sheetName);
-  const outputFile = `${outputDir}/${sheetName}Players.json`
+  const outputFile = sheetName ==='adversaire' ?
+     `${outputDir}/${sheetName}.json`
+     : `${outputDir}/${sheetName}Players.json`;
+
   // Convert sheet to JSON
   const jsonData = xlsx.utils.sheet_to_json(sheet, { header: 1, raw: false });
   // Extract field names from the first row of the data, and trim spaces
@@ -77,22 +80,7 @@ function convertSheet(sheet, sheetName, outputDir, password) {
 
   // Remove the first row from the data
   const dataWithoutHeader = jsonData.slice(1);
-// {
-  // "players":[
-    //   {
-    //  "name": "toto",
-    //  "physique": 3,
-    //  "technique": 0.5,
-    //  "defense": 3,
-    //  "intelligence": 1,
-    //  "attaque": 1,
-    //  "vitesse": 1.5,
-    //  "poste": "Coach"
-    //  "posteb": "Coach"
-    //  "postec": "Coach"
-    // },
-  // ]
-// }
+
   // Create an array of objects with field names and values
   let jsonArray = dataWithoutHeader.map(row => {
       const obj = {};
@@ -131,7 +119,7 @@ function convertSheet(sheet, sheetName, outputDir, password) {
 
 function excelToJson(inputFile, outputDir, password) {
   // Read Excel file
-  const workbook = xlsx.readFile(inputFile);
+  const workbook = xlsx.readFile(inputFile, { password: password });
   console.log('SheetNames.', workbook.SheetNames);
   workbook.SheetNames.forEach( sheetName => {
     const sheet = workbook.Sheets[sheetName];
