@@ -9,9 +9,12 @@ module.exports = (env, argv) => {
   return {
     entry: './src/main.ts',
     output: {
-      path: path.resolve(__dirname, 'dist'),
-      filename: 'bundle.js',
-      clean: true,
+        path: isProduction ? path.resolve(__dirname, '.') : path.resolve(__dirname, 'dist'),
+        filename: isProduction ? 'build/bundle.js' : 'bundle.js',
+        clean: isProduction ? {
+            keep: /^(?!build\/)/
+        } : true,
+        publicPath: isProduction ? './' : '/'
     },
     resolve: {
       extensions: ['.ts', '.js'],
@@ -33,35 +36,39 @@ module.exports = (env, argv) => {
         {
           test: /\.(png|svg|jpg|jpeg|gif)$/i,
           type: 'asset/resource',
-          // generator: {
-          //   filename: isProduction ? '[name].[contenthash][ext]' : '[name][ext]'
-          // }
+          generator: {
+            filename: isProduction ? 'build/[name].[contenthash][ext]' : '[name][ext]'
+          }
         },
         {
           test: /\.(woff|woff2|eot|ttf|otf)$/i,
           type: 'asset/resource',
+          generator: {
+            filename: isProduction ? 'build/[name].[contenthash][ext]' : '[name][ext]'
+          }
         },
       ],
     },
     plugins: [
+      ...(isProduction ? [
+        new MiniCssExtractPlugin({
+            filename: 'build/styles.css'
+        }),
+      ] : []),
       new HtmlWebpackPlugin({
         template: './src/index.html',
         filename: 'index.html',
         inject: 'body',
+        minify: isProduction,
       }),
       new CopyWebpackPlugin({
         patterns: [
           {
             from: path.resolve(__dirname, 'node_modules/gif.js/dist/gif.worker.js'),
-            to: path.resolve(__dirname, 'dist/gif.worker.js')
+            to: isProduction ? path.resolve(__dirname, 'build/gif.worker.js') : 'gif.worker.js'
           }
         ]
       }),
-      ...(isProduction ? [
-        new MiniCssExtractPlugin({
-          filename: 'styles.css',
-        })
-      ] : [])
     ],
     devServer: {
       static: {

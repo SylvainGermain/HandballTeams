@@ -1,63 +1,40 @@
 const fs = require('fs');
 const path = require('path');
 
-// Create static directory if it doesn't exist
-// replace '.' by any output folder
-const staticDir = path.join(__dirname, '..', '.');
-if (!fs.existsSync(staticDir)) {
-    fs.mkdirSync(staticDir);
+// For static serving, the build folder is already at the root level
+// and index.html already references the correct paths in the build folder.
+// This script just verifies everything is in place.
+
+const rootDir = path.join(__dirname, '..');
+const buildDir = path.join(rootDir, 'build');
+const indexPath = path.join(rootDir, 'index.html');
+
+// Check if build folder exists at root level
+if (!fs.existsSync(buildDir)) {
+    console.log('Warning: build folder not found at root level. Please run build first.');
+    process.exit(1);
 }
 
-// Copy files from dist to static
-const distDir = path.join(__dirname, '..', 'dist');
-
-// Get all files from dist directory
-if (fs.existsSync(distDir)) {
-    const allFiles = fs.readdirSync(distDir);
-
-    allFiles.forEach(file => {
-        const srcPath = path.join(distDir, file);
-        const destPath = path.join(staticDir, file);
-
-        // Only copy files, not directories
-        if (fs.statSync(srcPath).isFile()) {
-            fs.copyFileSync(srcPath, destPath);
-            console.log(`Copied ${file} to static folder`);
-        }
-    });
-} else {
-    console.log('Warning: dist folder not found. Please run build first.');
+// Check if index.html exists at root level
+if (!fs.existsSync(indexPath)) {
+    console.log('Warning: index.html not found at root level. Please run build first.');
+    process.exit(1);
 }
 
-// Verify and fix the HTML file to ensure it properly references bundle.js
-const htmlPath = path.join(staticDir, 'index.html');
-if (fs.existsSync(htmlPath)) {
-    let htmlContent = fs.readFileSync(htmlPath, 'utf8');
-
-    // Check if bundle.js is already referenced
-    if (!htmlContent.includes('bundle.js')) {
-        console.log('Adding bundle.js reference to HTML file...');
-
-        // Add CSS link if styles.css exists
-        if (fs.existsSync(path.join(staticDir, 'styles.css')) && !htmlContent.includes('styles.css')) {
-            htmlContent = htmlContent.replace(
-                '</head>',
-                '    <link rel="stylesheet" href="styles.css">\n</head>'
-            );
-        }
-
-        // Add script tag before closing body tag
-        htmlContent = htmlContent.replace(
-            '</body>',
-            '    <script src="bundle.js"></script>\n</body>'
-        );
-
-        fs.writeFileSync(htmlPath, htmlContent);
-        console.log('Updated HTML file to reference bundle.js and styles.css');
-    } else {
-        console.log('HTML file already properly references bundle.js');
+// List build folder contents
+console.log('Build folder contents:');
+const buildFiles = fs.readdirSync(buildDir);
+buildFiles.forEach(file => {
+    const filePath = path.join(buildDir, file);
+    if (fs.statSync(filePath).isFile()) {
+        console.log(`  - ${file}`);
     }
-}
+});
+
+console.log('\nStatic files ready for deployment!');
+console.log('The build folder is at the root level and index.html references it correctly.');
+console.log('You can serve the root folder using any web server.');
+console.log('For example: python -m http.server 8080');
 
 console.log('Static files ready for deployment!');
 console.log('You can serve the static folder using any web server.');
