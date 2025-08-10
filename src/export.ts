@@ -341,85 +341,24 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
           exportBtn.style.background = 'linear-gradient(90deg, #fd7e14 95%, #e55a00 95%)';
       }
 
-      // Configure GIF settings
-      const gif = new GIF({
-          workers: 2, // Use 2 web workers for faster processing
-          quality: 10, // Lower is better quality (1-30)
-          width: frames[0].width,
-          height: frames[0].height,
-          workerScript: './gif.worker.js', // Use gif.worker.js (webpack will handle the correct path)
-          repeat: 0, // 0 = loop forever, -1 = no loop, n = loop n times
-          transparent: null // No transparency
-      });
+      const progressCallback = (progress: number) => {
+        if (exportBtn) {
+            const gifProgress = Math.round(95 + (progress * 5)); // 95-100%
+            exportBtn.style.background = `linear-gradient(90deg, #fd7e14 ${gifProgress}%, #e55a00 ${gifProgress}%)`;
+            exportBtn.textContent = `Creating GIF... ${Math.round(progress * 100)}%`;
+        }
+        };
 
-      // Add each frame to the GIF with timing
-      frames.forEach((canvas, index) => {
-          // Longer delay for first and last frames for better viewing
-          let delay: number;
-          if (index === 0) {
-              delay = 2000; // First frame: 2.5 seconds
-          } else if (index === frames.length - 1) {
-              delay = 2000; // Last frame: 3 seconds
-          } else {
-              delay = 1000; // Middle frames: 1.8 seconds
-          }
+      const endCallback = () => {
+        if (exportBtn) {
+            exportBtn.textContent = originalText;
+            exportBtn.disabled = false;
+            exportBtn.style.background = ''; // Reset to CSS default
+        }
+        };
 
-          gif.addFrame(canvas, {
-              delay: delay,
-              copy: true // Copy frame data to prevent memory issues
-          });
-      });
-
-      // Handle GIF completion
-      gif.on('finished', function(blob: Blob) {
-          try {
-              const url = URL.createObjectURL(blob);
-              const link = document.createElement('a');
-              link.download = `${teamId}_players_animated_${playersPerPage}per_${new Date().toISOString().split('T')[0]}.gif`;
-              link.href = url;
-              document.body.appendChild(link);
-              link.click();
-              document.body.removeChild(link);
-              URL.revokeObjectURL(url);
-
-              console.log(`Successfully created animated GIF with ${frames.length} frames`);
-          } catch (error) {
-              console.error('Error downloading GIF:', error);
-              alert('GIF created successfully but download failed. Please try again.');
-          }
-
-          // Reset button
-          if (exportBtn) {
-              exportBtn.textContent = originalText;
-              exportBtn.disabled = false;
-              exportBtn.style.background = '';
-          }
-      });
-
-      // Handle GIF progress updates
-      gif.on('progress', function(progress: number) {
-          if (exportBtn) {
-              const gifProgress = Math.round(95 + (progress * 5)); // 95-100%
-              exportBtn.style.background = `linear-gradient(90deg, #fd7e14 ${gifProgress}%, #e55a00 ${gifProgress}%)`;
-              exportBtn.textContent = `Creating GIF... ${Math.round(progress * 100)}%`;
-          }
-      });
-
-      // Handle GIF creation errors
-      gif.on('abort', function() {
-          console.error('GIF creation was aborted');
-          alert('GIF creation was interrupted. Please try again.');
-
-          if (exportBtn) {
-              exportBtn.textContent = originalText;
-              exportBtn.disabled = false;
-              exportBtn.style.background = '';
-          }
-      });
-
-      // Start GIF rendering
-      gif.render();
-
+        await exportGIFFrames(frames, `${teamId}_players_animated_${playersPerPage}per_${new Date().toISOString().split('T')[0]}`,
+            progressCallback, endCallback);
   } catch (error) {
       console.error('Error creating movie export:', error);
       alert('Failed to create movie export. Please try again.');
@@ -431,6 +370,79 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
           exportBtn.disabled = false;
       }
   }
+}
+
+export async function exportGIFFrames(
+    frames: HTMLCanvasElement[], fileNamePrefix: string,
+    progressCallback: (progress: number) => void,
+    callback: () => void ){
+    return new Promise<void>((resolve, reject) => {
+    // Configure GIF settings
+        const gif = new GIF({
+            workers: 2, // Use 2 web workers for faster processing
+            quality: 10, // Lower is better quality (1-30)
+            width: frames[0].width,
+            height: frames[0].height,
+            workerScript: './gif.worker.js', // Use gif.worker.js (webpack will handle the correct path)
+            repeat: 0, // 0 = loop forever, -1 = no loop, n = loop n times
+            transparent: null // No transparency
+        });
+
+        // Add each frame to the GIF with timing
+        frames.forEach((canvas, index) => {
+            // Longer delay for first and last frames for better viewing
+            let delay: number;
+            if (index === 0) {
+                delay = 2000; // First frame: 2.5 seconds
+            } else if (index === frames.length - 1) {
+                delay = 2000; // Last frame: 3 seconds
+            } else {
+                delay = 1000; // Middle frames: 1.8 seconds
+            }
+
+            gif.addFrame(canvas, {
+                delay: delay,
+                copy: true // Copy frame data to prevent memory issues
+            });
+        });
+        // Handle GIF completion
+        gif.on('finished', function(blob: Blob) {
+            try {
+                const url = URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.download = `${fileNamePrefix}.gif`;
+                link.href = url;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+                URL.revokeObjectURL(url);
+
+                console.log(`Successfully created animated GIF with ${frames.length} frames`);
+            } catch (error) {
+                console.error('Error downloading GIF:', error);
+                alert('GIF created successfully but download failed. Please try again.');
+                reject(error)
+            }
+
+            callback();
+            resolve()
+        });
+
+        // Handle GIF progress updates
+        gif.on('progress', progressCallback);
+
+
+        // Handle GIF creation errors
+        gif.on('abort', function() {
+            console.error('GIF creation was aborted');
+            alert('GIF creation was interrupted. Please try again.');
+            callback();
+            resolve;
+        });
+
+        // Start GIF rendering
+        gif.render();
+    });
 }
 
 export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName: string): Promise<void> {

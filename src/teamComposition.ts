@@ -3,13 +3,14 @@ import { Player, Post, Team, TeamCompositionSummary } from './model';
 import { ExportHelper, SummaryExportMode } from './export';
 import { Resources } from './resources';
 import { SummaryRenderer, PlayerLayout, PlayerSectionOptions } from './summaryRenderer';
+import html2canvas from 'html2canvas';
 
 export class TeamCompositionModal {
     private static currentStep: number = 1;
     private static teamCompositionSummary: TeamCompositionSummary = TeamCompositionModal.initComposition();
 
     public static show(team: Team): void {
-        this.currentStep = 1;
+        this.currentStep = 4;
         this.resetComposition();
         this.loadFromCookie(team);
         this.createModal(team);
@@ -1020,53 +1021,232 @@ export class TeamCompositionModal {
             return;
         }
 
-        const matchInfo = this.teamCompositionSummary.matchInfo;
-        const matchResults = this.teamCompositionSummary.matchResults;
-
-        // Create a simple text summary for now
-        let exportText = `🏐 MATCH RESULT 🏐\n\n`;
-        exportText += `Montigny ${matchResults.homeScore} - ${matchResults.awayScore} ${matchInfo.oppositeTeam}\n\n`;
-
-        if (matchResults.matchStatus === 'victory') {
-            exportText += `🏆 VICTORY! 🏆\n\n`;
-        } else if (matchResults.matchStatus === 'defeat') {
-            exportText += `😔 Tough loss, but we'll come back stronger! 💪\n\n`;
-        } else if (matchResults.matchStatus === 'draw') {
-            exportText += `🤝 Hard-fought draw! \n\n`;
-        }
-
-        if (matchResults.highlights.length > 0) {
-            exportText += `📋 Match Highlights:\n`;
-            matchResults.highlights.forEach(highlight => {
-                if (highlight.trim()) {
-                    exportText += `• ${highlight}\n`;
-                }
-            });
-            exportText += `\n`;
-        }
-
-        if (matchResults.postMatchNotes) {
-            exportText += `📝 ${matchResults.postMatchNotes}\n\n`;
-        }
-
-        exportText += `📍 ${matchInfo.location}\n`;
-        exportText += `📅 ${matchInfo.date}\n\n`;
-        exportText += `#Handball #Montigny #TeamSpirit`;
-
-        // Copy to clipboard
         try {
-            await navigator.clipboard.writeText(exportText);
-            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
-        } catch (err) {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = exportText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
+            // Show progress message
+            const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
+            if (exportBtn) {
+                exportBtn.textContent = 'Creating GIF...';
+                exportBtn.disabled = true;
+            }
+
+            // Create 3 frames for the GIF
+            const frames = await this.createMatchResultFrames();
+
+            if (frames.length === 0) {
+                throw new Error('Failed to create all frames');
+            }
+
+            const progressCallback = (_: number) => {};
+            const endCallback = () => {};
+
+            const matchInfo = this.teamCompositionSummary!.matchInfo;
+            const matchResults = this.teamCompositionSummary!.matchResults!;
+            const opponentName = matchInfo.oppositeTeam || 'Unknown';
+            const dateStr = matchInfo.date || 'NoDate';
+            const scoreStr = `${matchResults.homeScore}-${matchResults.awayScore}`;
+
+            await ExportHelper.exportGIFFrames(frames, `match-result-montigny-vs-${opponentName.toLowerCase().replace(/\s+/g, '-')}-${scoreStr}-${dateStr}`,
+                progressCallback, endCallback);
+
+        } catch (error) {
+            console.error('Failed to export match results as GIF:', error);
+            alert('Failed to create GIF. Please try again.');
+        } finally {
+            // Restore button state
+            const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
+            if (exportBtn) {
+                exportBtn.textContent = '📱 Export for Social Media';
+                exportBtn.disabled = false;
+            }
         }
+    }
+
+    /**
+     * Creates 3 frames for the match result GIF animation
+     * Frame 1: Match information and teams
+     * Frame 2: Final score reveal
+     * Frame 3: Celebration/result status
+     */
+    private static async createMatchResultFrames(): Promise<HTMLCanvasElement[]> {
+        const frames: HTMLCanvasElement[] = [];
+        const frameWidth = 1200;
+        const frameHeight = 1200;
+
+        try {
+            // Frame 1: Match Information and Teams
+            const frame1 = await this.createHeadFrame(frameWidth, frameHeight);
+            frames.push(frame1);
+
+            // Frame 2: Score Reveal
+            const frame2 = await this.createCompoFrame(frameWidth, frameHeight);
+            frames.push(frame2);
+
+            // Frame 3: Result Status and Celebration
+            const frame3 = await this.createResultFrame(frameWidth, frameHeight);
+            frames.push(frame3);
+
+            return frames;
+        } catch (error) {
+            console.error('Error creating match result frames:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Frame 1: Shows match information, teams, and basic details
+     */
+    private static async createHeadFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Generate the composition content (title + players/coach section only)
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * Frame 2: Shows the team composition with tactical layout
+     */
+    private static async createCompoFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Use TACTICAL layout for this frame
+            const tacticalOptions: PlayerSectionOptions = {
+                layout: PlayerLayout.TACTICAL
+            };
+
+            // Generate the composition content (title + players/coach section only)
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                    ${SummaryRenderer.createPlayersAndCoachSection(this.teamCompositionSummary, tacticalOptions)}
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * Frame 3: Shows the result status with appropriate celebration or consolation
+     */
+    private static async createResultFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Generate the composition content (title + match result section)
+            const matchResults = this.teamCompositionSummary!.matchResults!;
+
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                    <div class="match-glow">
+                        <h1 class="match-day-title">Final Score</h1>
+                        <h2 class="match-title">
+                            <span class="home-team-name">${matchResults.homeScore}</span>
+                            <span class="match-day-titler">-</span>
+                            <span class="away-team-name">${matchResults.awayScore}</span>
+                        </h2>
+                    </div>
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
     }
 
     private static saveCompositionToFile(): void {

@@ -1964,6 +1964,11 @@ h1 {
     color: var(--font-color1);
 }
 
+.export-match-summary-container {
+    background: var(--background-color1);
+}
+
+
 .load-help-text {
     margin: 8px 0 0 0;
     font-size: 0.9em;
