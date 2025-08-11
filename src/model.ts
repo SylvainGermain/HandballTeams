@@ -18,6 +18,7 @@ export interface Player {
 export interface Adversaire {
     nom: string;
     shortname: string;
+    logo: string;
 };
 
 // Interface for team data (importing from main)
@@ -49,6 +50,7 @@ export interface MatchInfo {
     date: string;
     time: string;
     meetingPlace: string;
+    isHome: boolean; // true if Montigny is receiving (playing at home)
 }
 
 // Interface for match results

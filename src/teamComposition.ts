@@ -10,7 +10,7 @@ export class TeamCompositionModal {
     private static teamCompositionSummary: TeamCompositionSummary = TeamCompositionModal.initComposition();
 
     public static show(team: Team): void {
-        this.currentStep = 4;
+        this.currentStep = 1;
         this.resetComposition();
         this.loadFromCookie(team);
         this.createModal(team);
@@ -27,7 +27,8 @@ export class TeamCompositionModal {
                 location: '',
                 date: '',
                 time: '',
-                meetingPlace: ''
+                meetingPlace: '',
+                isHome: true
             },
             majorPlayers: [],
             coach: null,
@@ -189,13 +190,14 @@ export class TeamCompositionModal {
             location: '',
             date: '',
             time: '',
-            meetingPlace: ''
+            meetingPlace: '',
+            isHome: true
         };
 
         // Get adversaire data for the dropdown
         let adversaireOptions = '';
         try {
-            const adversaires = Resources.getAdversaire(''); // Empty string as parameter since it's not used
+            const adversaires = Resources.getAdversaire(); // Empty string as parameter since it's not used
             adversaireOptions = adversaires.map(adversaire => {
                 return `<option value="${adversaire.nom}"></option>`;
             }).join('');
@@ -232,6 +234,12 @@ export class TeamCompositionModal {
                     <div class="form-group-compo">
                         <label for="meeting-place">Meeting Place:</label>
                         <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Enter meeting location">
+                    </div>
+                    <div class="form-group-compo">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is-home" ${matchInfo.isHome ? 'checked' : ''}>
+                            <span class="checkbox-text">Montigny is receiving (playing at home)</span>
+                        </label>
                     </div>
                 </form>
 
@@ -415,7 +423,8 @@ export class TeamCompositionModal {
             location: 'TBD',
             date: 'TBD',
             time: 'TBD',
-            meetingPlace: 'TBD'
+            meetingPlace: 'TBD',
+            isHome: true
         };
 
         return `
@@ -442,6 +451,10 @@ export class TeamCompositionModal {
                         <div class="summary-item">
                             <span class="summary-label">Meeting Place:</span>
                             <span class="summary-value">${matchInfo.meetingPlace}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Match Type:</span>
+                            <span class="summary-value">${matchInfo.isHome ? '🏠 Home Game (Receiving)' : '✈️ Away Game'}</span>
                         </div>
                     </div>
                 </div>
@@ -522,7 +535,8 @@ export class TeamCompositionModal {
             location: 'TBD',
             date: 'TBD',
             time: 'TBD',
-            meetingPlace: 'TBD'
+            meetingPlace: 'TBD',
+            isHome: true
         };
 
         return `
@@ -533,12 +547,12 @@ export class TeamCompositionModal {
                         <h4>Final Score</h4>
                         <div class="score-input-container">
                             <div class="team-score">
-                                <label for="home-score">Montigny:</label>
+                                <label for="home-score">${matchInfo.isHome ? 'Montigny' : matchInfo.oppositeTeam} (Home):</label>
                                 <input type="number" id="home-score" value="${matchResults.homeScore}" min="0" max="99">
                             </div>
                             <div class="score-separator">-</div>
                             <div class="team-score">
-                                <label for="away-score">${matchInfo.oppositeTeam}:</label>
+                                <label for="away-score">${matchInfo.isHome ? matchInfo.oppositeTeam : 'Montigny'} (Away):</label>
                                 <input type="number" id="away-score" value="${matchResults.awayScore}" min="0" max="99">
                             </div>
                         </div>
@@ -767,13 +781,15 @@ export class TeamCompositionModal {
     private static saveMatchInfo(team: Team): void {
         // Get opposite team value from the input field (which can be filled from datalist or typed manually)
         const oppositeTeamInput = document.getElementById('opposite-team') as HTMLInputElement;
+        const isHomeCheckbox = document.getElementById('is-home') as HTMLInputElement;
 
         this.teamCompositionSummary!.matchInfo = {
             oppositeTeam: oppositeTeamInput?.value || 'TBD',
             location: (document.getElementById('location') as HTMLInputElement).value || 'TBD',
             date: (document.getElementById('match-date') as HTMLInputElement).value || 'TBD',
             time: (document.getElementById('match-time') as HTMLInputElement).value || 'TBD',
-            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD'
+            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD',
+            isHome: isHomeCheckbox?.checked ?? true
         };
 
         // Save the updated match info to cookies
@@ -891,7 +907,8 @@ export class TeamCompositionModal {
                 location: '',
                 date: '',
                 time: '',
-                meetingPlace: ''
+                meetingPlace: '',
+                isHome: true
             };
             // Save to cookie to persist the cleared match data
             this.saveToCookie(team);
@@ -1211,6 +1228,10 @@ export class TeamCompositionModal {
 
             // Generate the composition content (title + match result section)
             const matchResults = this.teamCompositionSummary!.matchResults!;
+            const matchInfo = this.teamCompositionSummary!.matchInfo!;
+
+            const teams = matchInfo.isHome ? ['Montigny', matchInfo.oppositeTeam] : [matchInfo.oppositeTeam, 'Montigny'];
+            const classes = matchInfo.isHome ? ['home-team-name', 'away-team-name'] : ['away-team-name', 'home-team-name'];
 
             tempContainer.innerHTML = `
                 <div class="composition-frame-content">
@@ -1218,9 +1239,9 @@ export class TeamCompositionModal {
                     <div class="match-glow">
                         <h1 class="match-day-title">Final Score</h1>
                         <h2 class="match-title">
-                            <span class="home-team-name">${matchResults.homeScore}</span>
-                            <span class="match-day-titler">-</span>
-                            <span class="away-team-name">${matchResults.awayScore}</span>
+                            <span class="${classes[0]}">${teams[0]}: ${matchResults.homeScore}</span>
+                            <span class="match-day-titler"> - </span>
+                            <span class="${classes[1]}">${teams[1]}: ${matchResults.awayScore}</span>
                         </h2>
                     </div>
                 </div>

@@ -1,5 +1,6 @@
 import { Post, TeamCompositionSummary } from './model';
 import { PlayerHelper } from './player';
+import { Resources } from './resources';
 import landImage from '../resources/land.png';
 
 export enum PlayerLayout {
@@ -14,13 +15,26 @@ export interface PlayerSectionOptions {
 
 export class SummaryRenderer {
     static createSummaryTitle(summary: TeamCompositionSummary): string {
+        const teams = summary.matchInfo.isHome ? ['Montigny', summary.matchInfo.oppositeTeam] : [summary.matchInfo.oppositeTeam, 'Montigny'];
+        const classes = summary.matchInfo.isHome ? ['home-team-name', 'away-team-name'] : ['away-team-name', 'home-team-name'];
+
+        // Get team logos
+        const team1Logo = Resources.getTeamLogo(teams[0] || '');
+        const team2Logo = Resources.getTeamLogo(teams[1] || '');
+
         return `
             <div class="match-glow">
                 <h1 class="match-day-title">Match Day</h1>
                 <h2 class="match-title">
-                    <span class="home-team-name">Montigny</span>
+                    <div class="team-container">
+                        <span class="${classes[0]}">${teams[0]}</span>
+                        ${team1Logo ? `<img src="${team1Logo}" class="team-logo" />` : ''}
+                    </div>
                     <span class="match-day-titler">vs</span>
-                    <span class="away-team-name">${summary.matchInfo.oppositeTeam || 'TBD'}</span>
+                    <div class="team-container">
+                        <span class="${classes[1]}">${teams[1]}</span>
+                        ${team2Logo ? `<img src="${team2Logo}" class="team-logo" />` : ''}
+                    </div>
                 </h2>
             </div>
         `;
