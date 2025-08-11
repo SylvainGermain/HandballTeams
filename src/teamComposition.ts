@@ -3,6 +3,7 @@ import { Player, Post, Team, TeamCompositionSummary } from './model';
 import { ExportHelper, SummaryExportMode } from './export';
 import { Resources } from './resources';
 import { SummaryRenderer, PlayerLayout, PlayerSectionOptions } from './summaryRenderer';
+import html2canvas from 'html2canvas';
 
 export class TeamCompositionModal {
     private static currentStep: number = 1;
@@ -26,7 +27,8 @@ export class TeamCompositionModal {
                 location: '',
                 date: '',
                 time: '',
-                meetingPlace: ''
+                meetingPlace: '',
+                isHome: true
             },
             majorPlayers: [],
             coach: null,
@@ -188,13 +190,14 @@ export class TeamCompositionModal {
             location: '',
             date: '',
             time: '',
-            meetingPlace: ''
+            meetingPlace: '',
+            isHome: true
         };
 
         // Get adversaire data for the dropdown
         let adversaireOptions = '';
         try {
-            const adversaires = Resources.getAdversaire(''); // Empty string as parameter since it's not used
+            const adversaires = Resources.getAdversaire(); // Empty string as parameter since it's not used
             adversaireOptions = adversaires.map(adversaire => {
                 return `<option value="${adversaire.nom}"></option>`;
             }).join('');
@@ -231,6 +234,12 @@ export class TeamCompositionModal {
                     <div class="form-group-compo">
                         <label for="meeting-place">Meeting Place:</label>
                         <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Enter meeting location">
+                    </div>
+                    <div class="form-group-compo">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="is-home" ${matchInfo.isHome ? 'checked' : ''}>
+                            <span class="checkbox-text">Montigny is receiving (playing at home)</span>
+                        </label>
                     </div>
                 </form>
 
@@ -414,7 +423,8 @@ export class TeamCompositionModal {
             location: 'TBD',
             date: 'TBD',
             time: 'TBD',
-            meetingPlace: 'TBD'
+            meetingPlace: 'TBD',
+            isHome: true
         };
 
         return `
@@ -441,6 +451,10 @@ export class TeamCompositionModal {
                         <div class="summary-item">
                             <span class="summary-label">Meeting Place:</span>
                             <span class="summary-value">${matchInfo.meetingPlace}</span>
+                        </div>
+                        <div class="summary-item">
+                            <span class="summary-label">Match Type:</span>
+                            <span class="summary-value">${matchInfo.isHome ? '🏠 Home Game (Receiving)' : '✈️ Away Game'}</span>
                         </div>
                     </div>
                 </div>
@@ -521,7 +535,8 @@ export class TeamCompositionModal {
             location: 'TBD',
             date: 'TBD',
             time: 'TBD',
-            meetingPlace: 'TBD'
+            meetingPlace: 'TBD',
+            isHome: true
         };
 
         return `
@@ -532,12 +547,12 @@ export class TeamCompositionModal {
                         <h4>Final Score</h4>
                         <div class="score-input-container">
                             <div class="team-score">
-                                <label for="home-score">Montigny:</label>
+                                <label for="home-score">${matchInfo.isHome ? 'Montigny' : matchInfo.oppositeTeam} (Home):</label>
                                 <input type="number" id="home-score" value="${matchResults.homeScore}" min="0" max="99">
                             </div>
                             <div class="score-separator">-</div>
                             <div class="team-score">
-                                <label for="away-score">${matchInfo.oppositeTeam}:</label>
+                                <label for="away-score">${matchInfo.isHome ? matchInfo.oppositeTeam : 'Montigny'} (Away):</label>
                                 <input type="number" id="away-score" value="${matchResults.awayScore}" min="0" max="99">
                             </div>
                         </div>
@@ -766,13 +781,15 @@ export class TeamCompositionModal {
     private static saveMatchInfo(team: Team): void {
         // Get opposite team value from the input field (which can be filled from datalist or typed manually)
         const oppositeTeamInput = document.getElementById('opposite-team') as HTMLInputElement;
+        const isHomeCheckbox = document.getElementById('is-home') as HTMLInputElement;
 
         this.teamCompositionSummary!.matchInfo = {
             oppositeTeam: oppositeTeamInput?.value || 'TBD',
             location: (document.getElementById('location') as HTMLInputElement).value || 'TBD',
             date: (document.getElementById('match-date') as HTMLInputElement).value || 'TBD',
             time: (document.getElementById('match-time') as HTMLInputElement).value || 'TBD',
-            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD'
+            meetingPlace: (document.getElementById('meeting-place') as HTMLInputElement).value || 'TBD',
+            isHome: isHomeCheckbox?.checked ?? true
         };
 
         // Save the updated match info to cookies
@@ -890,7 +907,8 @@ export class TeamCompositionModal {
                 location: '',
                 date: '',
                 time: '',
-                meetingPlace: ''
+                meetingPlace: '',
+                isHome: true
             };
             // Save to cookie to persist the cleared match data
             this.saveToCookie(team);
@@ -1020,53 +1038,236 @@ export class TeamCompositionModal {
             return;
         }
 
-        const matchInfo = this.teamCompositionSummary.matchInfo;
-        const matchResults = this.teamCompositionSummary.matchResults;
-
-        // Create a simple text summary for now
-        let exportText = `🏐 MATCH RESULT 🏐\n\n`;
-        exportText += `Montigny ${matchResults.homeScore} - ${matchResults.awayScore} ${matchInfo.oppositeTeam}\n\n`;
-
-        if (matchResults.matchStatus === 'victory') {
-            exportText += `🏆 VICTORY! 🏆\n\n`;
-        } else if (matchResults.matchStatus === 'defeat') {
-            exportText += `😔 Tough loss, but we'll come back stronger! 💪\n\n`;
-        } else if (matchResults.matchStatus === 'draw') {
-            exportText += `🤝 Hard-fought draw! \n\n`;
-        }
-
-        if (matchResults.highlights.length > 0) {
-            exportText += `📋 Match Highlights:\n`;
-            matchResults.highlights.forEach(highlight => {
-                if (highlight.trim()) {
-                    exportText += `• ${highlight}\n`;
-                }
-            });
-            exportText += `\n`;
-        }
-
-        if (matchResults.postMatchNotes) {
-            exportText += `📝 ${matchResults.postMatchNotes}\n\n`;
-        }
-
-        exportText += `📍 ${matchInfo.location}\n`;
-        exportText += `📅 ${matchInfo.date}\n\n`;
-        exportText += `#Handball #Montigny #TeamSpirit`;
-
-        // Copy to clipboard
         try {
-            await navigator.clipboard.writeText(exportText);
-            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
-        } catch (err) {
-            // Fallback for older browsers
-            const textArea = document.createElement('textarea');
-            textArea.value = exportText;
-            document.body.appendChild(textArea);
-            textArea.select();
-            document.execCommand('copy');
-            document.body.removeChild(textArea);
-            alert('Match result copied to clipboard! 📋 Ready to paste on social media.');
+            // Show progress message
+            const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
+            if (exportBtn) {
+                exportBtn.textContent = 'Creating GIF...';
+                exportBtn.disabled = true;
+            }
+
+            // Create 3 frames for the GIF
+            const frames = await this.createMatchResultFrames();
+
+            if (frames.length === 0) {
+                throw new Error('Failed to create all frames');
+            }
+
+            const progressCallback = (_: number) => {};
+            const endCallback = () => {};
+
+            const matchInfo = this.teamCompositionSummary!.matchInfo;
+            const matchResults = this.teamCompositionSummary!.matchResults!;
+            const opponentName = matchInfo.oppositeTeam || 'Unknown';
+            const dateStr = matchInfo.date || 'NoDate';
+            const scoreStr = `${matchResults.homeScore}-${matchResults.awayScore}`;
+
+            await ExportHelper.exportGIFFrames(frames, `match-result-montigny-vs-${opponentName.toLowerCase().replace(/\s+/g, '-')}-${scoreStr}-${dateStr}`,
+                progressCallback, endCallback);
+
+        } catch (error) {
+            console.error('Failed to export match results as GIF:', error);
+            alert('Failed to create GIF. Please try again.');
+        } finally {
+            // Restore button state
+            const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
+            if (exportBtn) {
+                exportBtn.textContent = '📱 Export for Social Media';
+                exportBtn.disabled = false;
+            }
         }
+    }
+
+    /**
+     * Creates 3 frames for the match result GIF animation
+     * Frame 1: Match information and teams
+     * Frame 2: Final score reveal
+     * Frame 3: Celebration/result status
+     */
+    private static async createMatchResultFrames(): Promise<HTMLCanvasElement[]> {
+        const frames: HTMLCanvasElement[] = [];
+        const frameWidth = 1200;
+        const frameHeight = 1200;
+
+        try {
+            // Frame 1: Match Information and Teams
+            const frame1 = await this.createHeadFrame(frameWidth, frameHeight);
+            frames.push(frame1);
+
+            // Frame 2: Score Reveal
+            const frame2 = await this.createCompoFrame(frameWidth, frameHeight);
+            frames.push(frame2);
+
+            // Frame 3: Result Status and Celebration
+            const frame3 = await this.createResultFrame(frameWidth, frameHeight);
+            frames.push(frame3);
+
+            return frames;
+        } catch (error) {
+            console.error('Error creating match result frames:', error);
+            throw error;
+        }
+    }
+
+    /**
+     * Frame 1: Shows match information, teams, and basic details
+     */
+    private static async createHeadFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Generate the composition content (title + players/coach section only)
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * Frame 2: Shows the team composition with tactical layout
+     */
+    private static async createCompoFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Use TACTICAL layout for this frame
+            const tacticalOptions: PlayerSectionOptions = {
+                layout: PlayerLayout.TACTICAL
+            };
+
+            // Generate the composition content (title + players/coach section only)
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                    ${SummaryRenderer.createPlayersAndCoachSection(this.teamCompositionSummary, tacticalOptions)}
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
+    }
+
+    /**
+     * Frame 3: Shows the result status with appropriate celebration or consolation
+     */
+    private static async createResultFrame(width: number, height: number):
+        Promise<HTMLCanvasElement> {
+        return new Promise( (resolve, reject) => {
+            // Create a temporary container to render the composition
+            const tempContainer = document.createElement('div');
+            tempContainer.style.position = 'absolute';
+            tempContainer.style.left = '-9999px';
+            tempContainer.style.top = '-9999px';
+            tempContainer.style.width = `${width}px`;
+            tempContainer.style.height = `${height}px`;
+            tempContainer.style.padding = '20px';
+            tempContainer.style.boxSizing = 'border-box';
+            tempContainer.classList.add('export-match-summary-container');
+
+            // Generate the composition content (title + match result section)
+            const matchResults = this.teamCompositionSummary!.matchResults!;
+            const matchInfo = this.teamCompositionSummary!.matchInfo!;
+
+            const teams = matchInfo.isHome ? ['Montigny', matchInfo.oppositeTeam] : [matchInfo.oppositeTeam, 'Montigny'];
+            const classes = matchInfo.isHome ? ['home-team-name', 'away-team-name'] : ['away-team-name', 'home-team-name'];
+
+            tempContainer.innerHTML = `
+                <div class="composition-frame-content">
+                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
+                    <div class="match-glow">
+                        <h1 class="match-day-title">Final Score</h1>
+                        <h2 class="match-title">
+                            <span class="${classes[0]}">${teams[0]}: ${matchResults.homeScore}</span>
+                            <span class="match-day-titler"> - </span>
+                            <span class="${classes[1]}">${teams[1]}: ${matchResults.awayScore}</span>
+                        </h2>
+                    </div>
+                </div>
+            `;
+
+            // Add to DOM temporarily to allow CSS to be applied
+            document.body.appendChild(tempContainer);
+
+            try {
+                // Capture the composition as canvas
+                html2canvas(tempContainer, {
+                    width: width,
+                    height: height,
+                    scale: 1,
+                    backgroundColor: 'white',
+                    useCORS: true,
+                    allowTaint: true
+                }).then(canvas => {
+                    document.body.removeChild(tempContainer);
+                    resolve(canvas);
+                });
+            } catch (error) {
+                console.warn('Failed to render composition with html2canvas, using fallback:', error);
+                reject(error);
+            }
+        });
     }
 
     private static saveCompositionToFile(): void {

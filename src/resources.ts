@@ -3,6 +3,7 @@ import U15PlayersData from '../resources/U15Players.json';
 import U13PlayersData from '../resources/U13Players.json';
 import SMPlayersData from '../resources/SMPlayers.json';
 import AdversaireData from '../resources/adversaire.json';
+import asmbhLogo from '../resources/ASMBH_Logo.png';
 
 import { Adversaire, Player } from './model';
 
@@ -108,7 +109,7 @@ export namespace Resources {
   }
 
 
-  export function getAdversaire(_: string): Adversaire[] {
+  export function getAdversaire(): Adversaire[] {
     const cached = cache.get('adversaire');
     if (cached) {
       return cached as Adversaire[];
@@ -122,5 +123,19 @@ export namespace Resources {
       return cached as Player[];
     }
     throw new Error('Resource not found for team ID');
+  }
+
+  export function getTeamLogo(teamName: string): string {
+    if (teamName.toLowerCase().includes('montigny')) {
+      return asmbhLogo;
+    }
+
+    const adversaires = getAdversaire();
+    const adversaire = adversaires.find(adv =>
+      adv.nom.toLowerCase().includes(teamName.toLowerCase()) ||
+      adv.shortname?.toLowerCase().includes(teamName.toLowerCase())
+    );
+
+    return adversaire?.logo || '';
   }
 }

@@ -1715,6 +1715,30 @@ h1 {
     margin-bottom: 2rem;
     font-weight: 600;
     text-align: center !important;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 2rem;
+}
+
+.team-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.team-logo {
+    width: 60px;
+    height: 60px;
+    object-fit: contain;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: transform 0.2s ease;
+}
+
+.team-logo:hover {
+    transform: scale(1.05);
 }
 
  .home-team-name {
@@ -1963,6 +1987,11 @@ h1 {
     margin: 0 0 10px 0;
     color: var(--font-color1);
 }
+
+.export-match-summary-container {
+    background: var(--background-color1);
+}
+
 
 .load-help-text {
     margin: 8px 0 0 0;
@@ -2255,6 +2284,37 @@ h1 {
 
     .competition-text {
         font-size: 0.8rem;
+    }
+}
+
+/* Responsive styles for team logos */
+@media (max-width: 768px) {
+    .match-title {
+        font-size: 2rem;
+        gap: 1rem;
+        flex-direction: column;
+    }
+
+    .team-logo {
+        width: 40px;
+        height: 40px;
+    }
+
+    .match-day-titler {
+        order: 2;
+        font-size: 2rem;
+        margin: 0.5rem 0;
+    }
+}
+
+@media (max-width: 480px) {
+    .match-title {
+        font-size: 1.5rem;
+    }
+
+    .team-logo {
+        width: 30px;
+        height: 30px;
     }
 }
 
