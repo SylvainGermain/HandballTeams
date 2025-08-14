@@ -136,6 +136,17 @@ export namespace Resources {
       adv.shortname?.toLowerCase().includes(teamName.toLowerCase())
     );
 
-    return adversaire?.logo || '';
+    if (adversaire?.logo) {
+      // If the logo is a local file (not starting with http), serve it from the logos folder
+      if (!adversaire.logo.startsWith('http')) {
+        // In development, files are served from /logos/ via devServer static config
+        // In production, files are copied to build/logos/
+        const isDevMode = process.env.NODE_ENV === 'development';
+        return isDevMode ? `./${adversaire.logo}` : `./build/${adversaire.logo}`;
+      }
+      return adversaire.logo;
+    }
+
+    return '';
   }
 }

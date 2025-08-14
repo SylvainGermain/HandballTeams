@@ -13,6 +13,27 @@ export interface PlayerSectionOptions {
     layout: PlayerLayout;
 }
 
+//  private static getCorsProxiedUrl(originalUrl: string): string {
+//         // List of available CORS proxy services (ordered by preference)
+//         const corsProxies = [
+//             // AllOrigins - good for images, reliable
+//             (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+
+//             // Alternative proxy services for fallback
+//             // (url: string) => `https://cors-anywhere.herokuapp.com/${url}`,
+//             // (url: string) => `https://cors.sh/${url}`,
+//             // (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`,
+//         ];
+
+//         // Use the first proxy service
+//         // In production, you might want to add retry logic or health checking
+//         const proxy = corsProxies[0];
+//         const proxiedUrl = proxy(originalUrl);
+
+//         console.log(`Using CORS proxy for ${originalUrl}: ${proxiedUrl}`);
+//         return proxiedUrl;
+//     }
+
 export class SummaryRenderer {
     static createSummaryTitle(summary: TeamCompositionSummary): string {
         const teams = summary.matchInfo.isHome ? ['Montigny', summary.matchInfo.oppositeTeam] : [summary.matchInfo.oppositeTeam, 'Montigny'];
@@ -28,76 +49,18 @@ export class SummaryRenderer {
                 <h2 class="match-title">
                     <div class="team-container">
                         <span class="${classes[0]}">${teams[0]}</span>
-                        ${team1Logo ? `<img src="${team1Logo}" class="team-logo" />` : ''}
+                        ${team1Logo ? `<img src="${team1Logo}" class="team-logo" time='${new Date().valueOf()}' crossOrigin='anonymous'/>` : ''}
                     </div>
                     <span class="match-day-titler">vs</span>
                     <div class="team-container">
                         <span class="${classes[1]}">${teams[1]}</span>
-                        ${team2Logo ? `<img src="${team2Logo}" class="team-logo" />` : ''}
+                        ${team2Logo ? `<img src="${team2Logo}" class="team-logo" time='${new Date().valueOf()}' crossOrigin ='anonymous'/>` : ''}
                     </div>
                 </h2>
             </div>
         `;
-
-        // const matchDate = summary.matchInfo.date ? new Date(summary.matchInfo.date).toLocaleDateString('fr-FR', {
-        //     weekday: 'long',
-        //     year: 'numeric',
-        //     month: 'long',
-        //     day: 'numeric'
-        // }) : 'Date TBD';
-
-        // const matchTime = summary.matchInfo.time || 'Time TBD';
-        // const location = summary.matchInfo.location || 'Location TBD';
-        // const opponent = summary.matchInfo.oppositeTeam || 'TBD';
-
-        // return `
-        //     <div class="competition-header">
-        //         <div class="competition-badge">
-        //             <span class="competition-icon">🏐</span>
-        //             <span class="competition-text">HANDBALL CHAMPIONSHIP</span>
-        //         </div>
-
-        //         <div class="match-showcase">
-        //             <div class="team-vs-container">
-        //                 <div class="home-team">
-        //                     <div class="team-name">MONTIGNY</div>
-        //                     <div class="team-badge">🔵</div>
-        //                 </div>
-
-        //                 <div class="vs-divider">
-        //                     <span class="vs-text">VS</span>
-        //                     <div class="vs-decoration"></div>
-        //                 </div>
-
-        //                 <div class="away-team">
-        //                     <div class="team-name">${opponent.toUpperCase()}</div>
-        //                     <div class="team-badge">🔴</div>
-        //                 </div>
-        //             </div>
-
-        //             <div class="match-info-banner">
-        //                 <div class="match-detail">
-        //                     <span class="detail-icon">📅</span>
-        //                     <span class="detail-text">${matchDate}</span>
-        //                 </div>
-        //                 <div class="match-detail">
-        //                     <span class="detail-icon">⏰</span>
-        //                     <span class="detail-text">${matchTime}</span>
-        //                 </div>
-        //                 <div class="match-detail">
-        //                     <span class="detail-icon">📍</span>
-        //                     <span class="detail-text">${location}</span>
-        //                 </div>
-        //             </div>
-        //         </div>
-
-        //         <div class="competition-subtitle">
-        //             <span class="subtitle-text">OFFICIAL TEAM LINEUP</span>
-        //             <div class="subtitle-underline"></div>
-        //         </div>
-        //     </div>
-        // `;
     }
+
 
     static createPlayersAndCoachSection(summary: TeamCompositionSummary, options: PlayerSectionOptions): string {
       switch(options.layout){

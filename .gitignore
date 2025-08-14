@@ -47,3 +47,6 @@ pids
 
 # Webpack bundle analyzer
 bundlestats.html
+
+#MINE
+*.xlsx
