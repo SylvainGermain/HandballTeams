@@ -7,6 +7,7 @@ const path = require('path');
 
 const rootDir = path.join(__dirname, '..');
 const buildDir = path.join(rootDir, 'build');
+const logosDir = path.join(buildDir, 'logos');
 const indexPath = path.join(rootDir, 'index.html');
 
 // Check if build folder exists at root level
@@ -21,13 +22,28 @@ if (!fs.existsSync(indexPath)) {
     process.exit(1);
 }
 
+// Check if logos folder exists in build
+if (fs.existsSync(logosDir)) {
+    console.log('Logos folder contents:');
+    const logoFiles = fs.readdirSync(logosDir);
+    logoFiles.forEach(file => {
+        if (file.endsWith('.png') || file.endsWith('.jpg') || file.endsWith('.jpeg')) {
+            console.log(`  - ${file}`);
+        }
+    });
+} else {
+    console.log('Note: No logos folder found in build directory (this is normal if resources/logos is empty)');
+}
+
 // List build folder contents
-console.log('Build folder contents:');
+console.log('\nBuild folder contents:');
 const buildFiles = fs.readdirSync(buildDir);
 buildFiles.forEach(file => {
     const filePath = path.join(buildDir, file);
     if (fs.statSync(filePath).isFile()) {
         console.log(`  - ${file}`);
+    } else if (fs.statSync(filePath).isDirectory()) {
+        console.log(`  - ${file}/ (directory)`);
     }
 });
 
@@ -35,7 +51,3 @@ console.log('\nStatic files ready for deployment!');
 console.log('The build folder is at the root level and index.html references it correctly.');
 console.log('You can serve the root folder using any web server.');
 console.log('For example: python -m http.server 8080');
-
-console.log('Static files ready for deployment!');
-console.log('You can serve the static folder using any web server.');
-console.log('For example: cd static && python -m http.server 8080');

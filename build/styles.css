@@ -1728,6 +1728,38 @@ h1 {
     gap: 0.5rem;
 }
 
+.team-container-with-watermark {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    /* padding: 20px;
+    min-height: 120px;
+    justify-content: center; */
+}
+
+.team-logo-watermark {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    width: 300px;
+    height: 300px;
+    background-size: contain;
+    background-repeat: no-repeat;
+    background-position: center;
+    opacity: 0.15;
+    z-index: 0;
+    pointer-events: none;
+}
+
+.team-container-with-watermark span {
+    position: relative;
+    z-index: 1;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+
 .team-logo {
     width: 60px;
     height: 60px;

@@ -558,15 +558,6 @@ export class TeamCompositionModal {
                         </div>
                     </div>
 
-                    <div class="match-status-section">
-                        <h4>Match Status</h4>
-                        <div class="status-buttons">
-                            <button class="btn status-btn ${matchResults.matchStatus === 'victory' ? 'active' : ''}" data-status="victory">🏆 Victory</button>
-                            <button class="btn status-btn ${matchResults.matchStatus === 'defeat' ? 'active' : ''}" data-status="defeat">😔 Defeat</button>
-                            <button class="btn status-btn ${matchResults.matchStatus === 'draw' ? 'active' : ''}" data-status="draw">🤝 Draw</button>
-                            <button class="btn status-btn ${matchResults.matchStatus === 'pending' ? 'active' : ''}" data-status="pending">⏳ Pending</button>
-                        </div>
-                    </div>
 
                     <div class="highlights-section">
                         <h4>Match Highlights</h4>
@@ -1143,7 +1134,7 @@ export class TeamCompositionModal {
                     height: height,
                     scale: 1,
                     backgroundColor: 'white',
-                    useCORS: true,
+                    useCORS: false,
                     allowTaint: true
                 }).then(canvas => {
                     document.body.removeChild(tempContainer);
@@ -1196,7 +1187,7 @@ export class TeamCompositionModal {
                     height: height,
                     scale: 1,
                     backgroundColor: 'white',
-                    useCORS: true,
+                    useCORS: false,
                     allowTaint: true
                 }).then(canvas => {
                     document.body.removeChild(tempContainer);
@@ -1233,15 +1224,29 @@ export class TeamCompositionModal {
             const teams = matchInfo.isHome ? ['Montigny', matchInfo.oppositeTeam] : [matchInfo.oppositeTeam, 'Montigny'];
             const classes = matchInfo.isHome ? ['home-team-name', 'away-team-name'] : ['away-team-name', 'home-team-name'];
 
+            // Get team logos
+            const team1Logo = Resources.getTeamLogo(teams[0]);
+            const team2Logo = Resources.getTeamLogo(teams[1]);
+
             tempContainer.innerHTML = `
                 <div class="composition-frame-content">
-                    ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
                     <div class="match-glow">
                         <h1 class="match-day-title">Final Score</h1>
                         <h2 class="match-title">
-                            <span class="${classes[0]}">${teams[0]}: ${matchResults.homeScore}</span>
+                            <div class="team-container-with-watermark" ${team1Logo ? `style="background-size: 300px 300px; background-repeat: no-repeat; background-position: center; background-opacity: 0.3;"` : ''}>
+                                ${team1Logo ? `<div class="team-logo-watermark" style="background-image: url('${team1Logo}'); opacity: 0.15;"></div>` : ''}
+                                <span class="${classes[0]}">${teams[0]}: ${matchResults.homeScore}</span>
+                            </div>
+                        </h2>
+                        <h2 class="match-title">
                             <span class="match-day-titler"> - </span>
-                            <span class="${classes[1]}">${teams[1]}: ${matchResults.awayScore}</span>
+                        </h2>
+                        <h2 class="match-title">
+                            <div class="team-container-with-watermark" ${team2Logo ? `style="background-size: 300px 300px; background-repeat: no-repeat; background-position: center; background-opacity: 0.3;"` : ''}>
+                               ${team2Logo ? `<div class="team-logo-watermark" style="background-image: url('${team2Logo}'); opacity: 0.15;"></div>` : ''}
+                               <span class="${classes[1]}">${teams[1]}: ${matchResults.awayScore}</span>
+
+                            </div>
                         </h2>
                     </div>
                 </div>
@@ -1257,7 +1262,7 @@ export class TeamCompositionModal {
                     height: height,
                     scale: 1,
                     backgroundColor: 'white',
-                    useCORS: true,
+                    useCORS: false,
                     allowTaint: true
                 }).then(canvas => {
                     document.body.removeChild(tempContainer);
