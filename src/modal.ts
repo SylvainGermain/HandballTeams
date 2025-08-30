@@ -154,7 +154,7 @@ export class TeamDetailsModal {
             playersHTML += `
                 <div class="section-wrapper">
                     <h4 class="section-heading">Coaching Staff</h4>
-                    <div class="coaching-staff-section">
+                    <div class="players-section">
             `;
 
             coaches.forEach((coach: Player) => {
@@ -171,7 +171,7 @@ export class TeamDetailsModal {
         if (regularPlayers.length > 0) {
             playersHTML += `
                 <div>
-                    <div class="players-header">
+                    <div class="section-wrapper">
                         <h4 class="section-heading">Players</h4>
                         <div class="export-buttons">
                             <button class="btn export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">

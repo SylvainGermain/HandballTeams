@@ -295,8 +295,6 @@
     grid-template-columns: repeat(auto-fit, minmax(min(280px, 100%), 1fr));
     justify-items: center;
     gap: 20px;
-    border-radius: 8px;
-    border-left: 4px solid var(--limiter-color1);
 }
 
 .outline_gold {
@@ -324,8 +322,6 @@
     padding: 1.5rem 0;
     justify-items: center;
     /* background: var(--background-color1); */
-    border-radius: 8px;
-    border-left: 4px solid var(--limiter-color1);
 }
 
 /* Player cards */
