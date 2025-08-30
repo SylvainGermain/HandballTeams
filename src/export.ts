@@ -383,7 +383,7 @@ export async function exportGIFFrames(
             quality: 10, // Lower is better quality (1-30)
             width: frames[0].width,
             height: frames[0].height,
-            workerScript: './gif.worker.js', // Use gif.worker.js (webpack will handle the correct path)
+            workerScript: process.env.NODE_ENV === 'production' ? './build/gif.worker.js' : './gif.worker.js',
             repeat: 0, // 0 = loop forever, -1 = no loop, n = loop n times
             transparent: null // No transparency
         });
