@@ -2,6 +2,7 @@ const path = require('path');
 const HtmlWebpackPlugin = require('html-webpack-plugin');
 const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const CopyWebpackPlugin = require('copy-webpack-plugin');
+const webpack = require('webpack');
 
 module.exports = (env, argv) => {
   const isProduction = argv.mode === 'production';
@@ -50,6 +51,10 @@ module.exports = (env, argv) => {
       ],
     },
     plugins: [
+      new webpack.DefinePlugin({
+        'process.env.NODE_ENV': JSON.stringify(isProduction ? 'production' : 'development'),
+        'IS_PRODUCTION': JSON.stringify(isProduction)
+      }),
       ...(isProduction ? [
         new MiniCssExtractPlugin({
             filename: 'build/styles.css'
@@ -66,15 +71,30 @@ module.exports = (env, argv) => {
           {
             from: path.resolve(__dirname, 'node_modules/gif.js/dist/gif.worker.js'),
             to: isProduction ? path.resolve(__dirname, 'build/gif.worker.js') : 'gif.worker.js'
+          },
+          {
+            from: path.resolve(__dirname, 'resources/logos'),
+            to: isProduction ? path.resolve(__dirname, 'build/logos') : 'logos',
+            globOptions: {
+              ignore: ['**/.DS_Store', '**/Thumbs.db']
+            },
+            noErrorOnMissing: true
           }
         ]
       }),
     ],
     devServer: {
-      static: {
-        directory: path.join(__dirname, 'dist'),
-        watch: true,
-      },
+      static: [
+        {
+          directory: path.join(__dirname, 'dist'),
+          watch: true,
+        },
+        {
+          directory: path.join(__dirname, 'resources'),
+          publicPath: '/resources',
+          watch: true,
+        }
+      ],
       watchFiles: [
         'src/**/*',
         'resources/**/*',
