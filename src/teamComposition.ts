@@ -502,7 +502,7 @@ export class TeamCompositionModal {
 
         // Default options for the summary step
         const stack: PlayerSectionOptions = {
-            layout: PlayerLayout.GRID
+            layout: PlayerLayout.TACTICAL
         };
 
         return `
@@ -513,7 +513,10 @@ export class TeamCompositionModal {
 
                 <div class="step-actions">
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
-                    <button class="btn btn-export" id="export-summary-btn">📸 Export as JPEG</button>
+                    <div class="export-group">
+                        <button class="btn btn-export" id="export-convoc-btn">📋 CONVOC</button>
+                        <button class="btn btn-export" id="export-prematch-btn">⚽ PREMATCH</button>
+                    </div>
                     <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
                     <button class="btn btn-primary" id="next-step-btn">Next Step</button>
                 </div>
@@ -620,10 +623,20 @@ export class TeamCompositionModal {
             finishBtn.addEventListener('click', () => this.finishComposition());
         }
 
-        // Export summary button
-        const exportBtn = document.getElementById('export-summary-btn');
-        if (exportBtn) {
-            exportBtn.addEventListener('click', () => this.exportSummary(SummaryExportMode.PREMATCH));
+        // Export summary buttons
+        const exportConvocBtn = document.getElementById('export-convoc-btn');
+        const exportPrematchBtn = document.getElementById('export-prematch-btn');
+
+        if (exportConvocBtn) {
+            exportConvocBtn.addEventListener('click', () => {
+                this.exportSummary(SummaryExportMode.CONVOC);
+            });
+        }
+
+        if (exportPrematchBtn) {
+            exportPrematchBtn.addEventListener('click', () => {
+                this.exportSummary(SummaryExportMode.PREMATCH);
+            });
         }
 
         // Save composition button
@@ -1132,7 +1145,7 @@ export class TeamCompositionModal {
                 html2canvas(tempContainer, {
                     width: width,
                     height: height,
-                    scale: 1,
+                    scale: this.getDeviceScale(),
                     backgroundColor: 'white',
                     useCORS: false,
                     allowTaint: true
@@ -1147,6 +1160,9 @@ export class TeamCompositionModal {
         });
     }
 
+    private static getDeviceScale(): number {
+        return Math.min(window.devicePixelRatio || 1, 2);
+    }
     /**
      * Frame 2: Shows the team composition with tactical layout
      */
@@ -1162,7 +1178,7 @@ export class TeamCompositionModal {
             tempContainer.style.height = `${height}px`;
             tempContainer.style.padding = '20px';
             tempContainer.style.boxSizing = 'border-box';
-            tempContainer.classList.add('export-match-summary-container');
+            tempContainer.classList.add('export-match-summary-container', 'force-desktop-layout');
 
             // Use TACTICAL layout for this frame
             const tacticalOptions: PlayerSectionOptions = {
@@ -1185,7 +1201,7 @@ export class TeamCompositionModal {
                 html2canvas(tempContainer, {
                     width: width,
                     height: height,
-                    scale: 1,
+                    scale: this.getDeviceScale(),
                     backgroundColor: 'white',
                     useCORS: false,
                     allowTaint: true
@@ -1260,7 +1276,7 @@ export class TeamCompositionModal {
                 html2canvas(tempContainer, {
                     width: width,
                     height: height,
-                    scale: 1,
+                    scale: this.getDeviceScale(),
                     backgroundColor: 'white',
                     useCORS: false,
                     allowTaint: true

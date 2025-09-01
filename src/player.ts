@@ -4,7 +4,6 @@ import backgroundImage from '../resources/background.png';
 export namespace PlayerHelper{
 const maxStat = 100;
 
-
 export const ShowStats =     0x00000001;
 export const ShowAvatar =    0x00000010;
 export const ShowGroup =     0x00000100;
@@ -28,10 +27,6 @@ export function createPlayer(player: Player, levelOfDetails: number, customPosit
            id="${playerId}"
            style="background-image: url('${backgroundImage}');"
            data-player-name="${playerName}"
-           ondblclick="handlePlayerCardDoubleClick(this)"
-           ontouchstart="handlePlayerCardTouchStart(this, event)"
-           ontouchend="handlePlayerCardTouchEnd(this, event)">
-
           <!-- Player Avatar - Center of hexagon -->
           <div class="player-name player-mini">
             ${getDisplayedName(player)}
@@ -44,9 +39,6 @@ export function createPlayer(player: Player, levelOfDetails: number, customPosit
            id="${playerId}"
            style="background-image: url('${backgroundImage}');"
            data-player-name="${playerName}"
-           ondblclick="handlePlayerCardDoubleClick(this)"
-           ontouchstart="handlePlayerCardTouchStart(this, event)"
-           ontouchend="handlePlayerCardTouchEnd(this, event)">
 
           <!-- Player Avatar - Center of hexagon -->
           <div class="player-info">
