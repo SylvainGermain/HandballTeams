@@ -253,6 +253,19 @@
     box-shadow: 0 0 0 3px rgba(0, 123, 255, 0.1);
 }
 
+/* Enhanced opponent team input with dropdown */
+.opponent-input-container {
+    position: relative;
+    display: flex;
+    align-items: center;
+}
+
+.opponent-input-container input[list] {
+    flex: 1;
+    padding-right: 45px; /* Make room for the dropdown button */
+    background-image: none; /* Remove the default datalist arrow */
+}
+
 /* Datalist input styling */
 .form-group-compo input[list] {
     background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 16 16"><path fill="%23666" d="M8 12l-4-4h8l-4 4z"/></svg>');
@@ -366,6 +379,17 @@
 .export-group .btn-export {
     min-width: 160px;
     font-weight: 500;
+}
+
+.export-group .btn-copy {
+    min-width: 120px;
+    font-weight: 500;
+    background-color: #6c757d;
+    color: white;
+}
+
+.export-group .btn-copy:hover {
+    background-color: #5a6268;
 }
 
 .btn {
