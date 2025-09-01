@@ -1521,6 +1521,17 @@ h1 {
     justify-content: space-around;
 }
 
+.export-group {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.export-group .btn-export {
+    min-width: 160px;
+    font-weight: 500;
+}
+
 .btn {
     padding: 12px 24px;
     border: none;
@@ -1801,16 +1812,16 @@ h1 {
 
 .players-section {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
-    gap: 25px;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 20px;
     padding: 1.5rem 0;
     justify-items: center;
 }
 
 /* Ensure player cards fit properly in summary */
 .summary-content .player-card {
-    width: min(280px, 85vw);
-    height: min(280px, 85vw);
+    width: min(200px, 85vw);
+    height: min(200px, 85vw);
     margin: 0;
 }
 
@@ -1871,13 +1882,13 @@ h1 {
     }
 
     .summary-content .players-section {
-        grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-        gap: 15px;
+        grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+        gap: 12px;
     }
 
     .summary-content .player-card {
-        width: min(180px, 80vw);
-        height: min(180px, 80vw);
+        width: min(160px, 80vw);
+        height: min(160px, 80vw);
     }
 
     .match-details-grid {
@@ -1978,13 +1989,13 @@ h1 {
 
 @media (max-width: 480px) {
     .summary-content .players-section {
-        grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-        gap: 10px;
+        grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+        gap: 8px;
     }
 
     .summary-content .player-card {
-        width: min(150px, 75vw);
-        height: min(150px, 75vw);
+        width: min(130px, 75vw);
+        height: min(130px, 75vw);
     }
 
     .match-day-title {
@@ -2016,10 +2027,44 @@ h1 {
     color: var(--font-color1);
 }
 
+/* Export container specific styles */
+.export-summary-container .players-section {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 20px;
+    padding: 1.5rem 0;
+    justify-items: center;
+}
+
+.export-summary-container .player-card {
+    width: 240px;
+    height: 240px;
+    margin: 0;
+}
+
 .export-match-summary-container {
     background: var(--background-color1);
 }
 
+.export-match-summary-container.force-desktop-layout {
+    /* Override all responsive styles for export */
+}
+
+.export-match-summary-container.force-desktop-layout .team-logo {
+    width: 60px !important;
+    height: 60px !important;
+}
+
+.export-match-summary-container.force-desktop-layout .match-title {
+    font-size: 3rem !important;
+}
+
+/* Disable all mobile-specific styles during export */
+@media (max-width: 768px) {
+    .export-match-summary-container.force-desktop-layout * {
+        /* Reset mobile styles */
+    }
+}
 
 .load-help-text {
     margin: 8px 0 0 0;

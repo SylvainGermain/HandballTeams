@@ -69,17 +69,16 @@ export class SummaryRenderer {
         case PlayerLayout.STACK:
           return this.createPlayersAndCoachSectionStack(summary);
         case PlayerLayout.TACTICAL:
-          return this.createPlayersAndCoachSectionTactic(summary, options);
+          return this.createPlayersAndCoachSectionTactic(summary);
       }
       return '';
     }
 
     private static createPlayersAndCoachSectionGrid(summary: TeamCompositionSummary,): string {
-        // Generate player cards using PlayerHelper
-        const majorPlayersHTML = summary.majorPlayers.map(player => PlayerHelper.createPlayer(player.player, PlayerHelper.ShowAllWoStats, player.position)).join('');
-
-        const substitutesHTML = summary.substitutes.map(player => PlayerHelper.createPlayer(player, PlayerHelper.ShowAllWoStats)).join('');
-        const coachHTML = summary.coach ? PlayerHelper.createPlayer(summary.coach, PlayerHelper.ShowAllWoStats) : '';
+        const majorPlayersHTML = summary.majorPlayers.map(player =>
+            PlayerHelper.createPlayer(player.player, PlayerHelper.ShowMini, player.position)).join('');
+        const substitutesHTML = summary.substitutes.map(player => PlayerHelper.createPlayer(player, PlayerHelper.ShowMini)).join('');
+        const coachHTML = summary.coach ? PlayerHelper.createPlayer(summary.coach, PlayerHelper.ShowMini) : '';
 
         // Apply layout class based on options
         const layoutClass = `layout-grid`;
@@ -107,7 +106,7 @@ export class SummaryRenderer {
     }
 
 
-    private static createPlayersAndCoachSectionTactic(summary: TeamCompositionSummary, _: PlayerSectionOptions): string {
+    private static createPlayersAndCoachSectionTactic(summary: TeamCompositionSummary): string {
 
         const coords: Map<Post, {x: number, y : number}>  = new Map([
             [Post.GK, {x: 600, y: 100}],

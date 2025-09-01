@@ -519,54 +519,21 @@ export async function exportSummary(summary: TeamCompositionSummary, fileName: s
 
       // Create an offscreen div for better layout control
       const offscreenDiv = document.createElement('div');
+      offscreenDiv.className = 'export-summary-container';
       offscreenDiv.style.position = 'absolute';
       offscreenDiv.style.left = '-9999px';
       offscreenDiv.style.top = '-9999px';
       offscreenDiv.style.width = '1200px';
-      offscreenDiv.style.padding = '40px';
+      offscreenDiv.style.padding = '10px';
       offscreenDiv.style.background = 'var(--background-color1)';
       offscreenDiv.style.fontFamily = 'Arial, sans-serif';
-      document.body.appendChild(offscreenDiv);
 
       // Use SummaryRenderer methods to generate the content
       const options: PlayerSectionOptions = {
           layout: PlayerLayout.GRID
       };
 
-      const style = mode === SummaryExportMode.CONVOC ? `
-          <style>
-              .section-wrapper {
-                  margin-bottom: 30px !important;
-              }
-              .section-heading {
-                  color: #2c3e50 !important;
-                  font-size: 1.6rem !important;
-                  margin-bottom: 20px !important;
-                  text-align: center !important;
-                  border-bottom: 3px solid #3498db !important;
-                  padding-bottom: 10px !important;
-              }
-              .players-section {
-                  display: grid !important;
-                  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
-                  gap: 20px !important;
-                  justify-items: center !important;
-                  margin: 0 auto !important;
-              }
-              .coaching-staff-section {
-                  display: flex !important;
-                  justify-content: center !important;
-              }
-              .player-card {
-                  width: 120px !important;
-                  height: 120px !important;
-                  margin: 0 !important;
-                  max-width: none !important;
-                  max-height: none !important;
-                  border-radius: 8px !important;
-                  box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-              }
-          </style>` : '';
+    //   const style = '';
 
       switch(mode){
         case SummaryExportMode.PREMATCH:
@@ -577,6 +544,8 @@ export async function exportSummary(summary: TeamCompositionSummary, fileName: s
             options.layout = PlayerLayout.GRID;
       }
 
+      document.body.appendChild(offscreenDiv);
+
       // Build the content using the modular methods
       const titleHTML = SummaryRenderer.createSummaryTitle(summary);
       const playersHTML = SummaryRenderer.createPlayersAndCoachSection(summary, options);
@@ -584,7 +553,6 @@ export async function exportSummary(summary: TeamCompositionSummary, fileName: s
 
       // Combine all sections with export-optimized styling
       offscreenDiv.innerHTML = `
-          ${style}
           <div>
               ${titleHTML}
               ${playersHTML}
