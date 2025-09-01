@@ -212,10 +212,12 @@ export class TeamCompositionModal {
                 <form class="match-info-form">
                     <div class="form-group-compo">
                         <label for="opposite-team">Opposite Team:</label>
-                        <input type="text" id="opposite-team" list="adversaire-list" value="${matchInfo.oppositeTeam}" placeholder="Select from list or type opponent team name" autocomplete="off">
-                        <datalist id="adversaire-list">
-                            ${adversaireOptions}
-                        </datalist>
+                        <div class="opponent-input-container">
+                            <input type="text" id="opposite-team" list="adversaire-list" value="${matchInfo.oppositeTeam}" placeholder="Select from list or type opponent team name" autocomplete="off">
+                            <datalist id="adversaire-list">
+                                ${adversaireOptions}
+                            </datalist>
+                        </div>
                     </div>
                     <div class="form-group-compo">
                         <label for="location">Location:</label>
@@ -515,6 +517,7 @@ export class TeamCompositionModal {
                     <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
                     <div class="export-group">
                         <button class="btn btn-export" id="export-convoc-btn">📋 CONVOC</button>
+                        <button class="btn btn-copy" id="copy-summary-btn">📝 Copy Text</button>
                         <button class="btn btn-export" id="export-prematch-btn">⚽ PREMATCH</button>
                     </div>
                     <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
@@ -626,10 +629,17 @@ export class TeamCompositionModal {
         // Export summary buttons
         const exportConvocBtn = document.getElementById('export-convoc-btn');
         const exportPrematchBtn = document.getElementById('export-prematch-btn');
+        const copySummaryBtn = document.getElementById('copy-summary-btn');
 
         if (exportConvocBtn) {
             exportConvocBtn.addEventListener('click', () => {
                 this.exportSummary(SummaryExportMode.CONVOC);
+            });
+        }
+
+        if (copySummaryBtn) {
+            copySummaryBtn.addEventListener('click', () => {
+                this.copySummaryToClipboard(SummaryExportMode.CONVOC);
             });
         }
 
@@ -688,6 +698,33 @@ export class TeamCompositionModal {
                 this.updateSubstitute(index, target.value, team);
             });
         });
+
+        // Enhanced opponent team input with dropdown functionality
+        const opponentInput = document.getElementById('opposite-team') as HTMLInputElement;
+        const opponentDropdownBtn = document.getElementById('opponent-dropdown-btn') as HTMLButtonElement;
+
+        if (opponentInput && opponentDropdownBtn) {
+            // Show dropdown when button is clicked
+            opponentDropdownBtn.addEventListener('click', (e) => {
+                e.preventDefault();
+                this.showOpponentDropdown(opponentInput);
+            });
+
+            // Enhanced input functionality for mobile
+            opponentInput.addEventListener('focus', () => {
+                // On mobile, automatically show suggestions after a short delay
+                setTimeout(() => {
+                    if (document.activeElement === opponentInput) {
+                        this.showOpponentDropdown(opponentInput);
+                    }
+                }, 300);
+            });
+
+            // Filter suggestions as user types
+            opponentInput.addEventListener('input', () => {
+                this.filterOpponentSuggestions(opponentInput);
+            });
+        }
 
         // Match results event listeners
         this.addMatchResultsEventListeners(team);
@@ -1431,6 +1468,114 @@ export class TeamCompositionModal {
         return ExportHelper.exportSummary(this.teamCompositionSummary!, fileName, mode);
     }
 
+    private static getTextCommon() {
+        const summary = this.teamCompositionSummary;
+        const matchInfo = summary.matchInfo;
+
+        // Format the summary as readable text
+        let text = matchInfo.isHome ? `${matchInfo.oppositeTeam} - ASMB\n`
+                                    : `ASMB - ${matchInfo.oppositeTeam}\n`;
+        text += `═══════════════════════════════════════\n\n`;
+
+        // Match Information
+        text += `📅 MATCH:\n`;
+        text += `• ${matchInfo.isHome ? '🏠 Match à Domicile (Réception)' : '✈️ Match à l\'Extérieur'}\n\n`;
+        text += `• Adversaire: ${matchInfo.oppositeTeam || 'TBD'}\n`;
+        text += `• Date: ${matchInfo.date || 'TBD'}\n`;
+        text += `• Heure: ${matchInfo.time || 'TBD'}\n`;
+        text += `• Lieu: ${matchInfo.location || 'TBD'}\n`;
+        text += `• Point de Rendez-vous: ${matchInfo.meetingPlace || 'TBD'}\n`;
+
+        return text;
+    }
+    private static getTextForTactic() {
+        const summary = this.teamCompositionSummary;
+        let text = this.getTextCommon();
+        // Major Players
+        text += `👕 STARTING LINEUP (${summary.majorPlayers.length} players):\n`;
+        summary.majorPlayers.forEach(mp => {
+            const playerName = this.getDisplayedName(mp.player);
+            text += `• ${mp.position}: ${playerName}\n`;
+        });
+
+        // Substitutes
+        if (summary.substitutes.length > 0) {
+            text += `\n🔄 SUBSTITUTES (${summary.substitutes.length} players):\n`;
+            summary.substitutes.forEach((substitute, index) => {
+                const playerName = this.getDisplayedName(substitute);
+                text += `• ${index + 1}. ${playerName}\n`;
+            });
+        }
+
+        // Coach
+        if (summary.coach) {
+            text += `\n🎯 COACH:\n`;
+            text += `• ${this.getDisplayedName(summary.coach)}\n`;
+        }
+       return text;
+    }
+
+    private static getTextForConvoc() {
+        const summary = this.teamCompositionSummary;
+        let text = this.getTextCommon();
+
+        let index = 1;
+
+        // Major Players
+        text += `👕 Joueurs:\n`;
+        summary.majorPlayers.forEach(mp => {
+            text += `• ${index}. ${this.getDisplayedName(mp.player)}\n`;
+            ++index;
+        });
+
+        // Substitutes
+        if (summary.substitutes.length > 0) {
+            summary.substitutes.forEach((substitute) => {
+                text += `• ${index}. ${this.getDisplayedName(substitute)}\n`;
+                ++index;
+            });
+        }
+
+        // Coach
+        if (summary.coach) {
+            text += `\n🎯 COACH:\n`;
+            text += `• ${this.getDisplayedName(summary.coach)}\n`;
+        }
+
+        // Total summary
+        return text;
+    }
+
+    public static async copySummaryToClipboard(mode: SummaryExportMode): Promise<void> {
+        if (!this.teamCompositionSummary) {
+            alert('No team composition to copy.');
+            return;
+        }
+
+        try {
+            const text = mode === SummaryExportMode.CONVOC ? this.getTextForConvoc() : this.getTextForTactic();
+            // Copy to clipboard
+            await navigator.clipboard.writeText(text);
+
+            // Show success message
+            const copyBtn = document.getElementById('copy-summary-btn') as HTMLButtonElement;
+            if (copyBtn) {
+                const originalText = copyBtn.textContent;
+                copyBtn.textContent = '✅ Copied!';
+                copyBtn.disabled = true;
+
+                setTimeout(() => {
+                    copyBtn.textContent = originalText;
+                    copyBtn.disabled = false;
+                }, 2000);
+            }
+
+        } catch (error) {
+            console.error('Failed to copy to clipboard:', error);
+            alert('Failed to copy to clipboard. Please try again.');
+        }
+    }
+
     private static updateModalContent(team: Team): void {
         const modalContent = document.querySelector('#composition-modal-content');
         if (modalContent) {
@@ -1445,6 +1590,49 @@ export class TeamCompositionModal {
 
     private static getDisplayedName(player: Player): string {
         return player.surnom ?? player.prenom ?? player.nom ?? 'Unknown';
+    }
+
+    private static showOpponentDropdown(inputElement: HTMLInputElement): void {
+        // For browsers that support it, trigger the datalist to show
+        if (inputElement.list) {
+            // Create a temporary event to trigger dropdown
+            inputElement.focus();
+
+            // Try to programmatically show the datalist
+            const event = new Event('input', { bubbles: true });
+            inputElement.dispatchEvent(event);
+
+            // Alternative approach: temporarily clear and restore value to trigger suggestions
+            const currentValue = inputElement.value;
+            inputElement.value = '';
+            setTimeout(() => {
+                inputElement.value = currentValue;
+                inputElement.select();
+            }, 50);
+        }
+    }
+
+    private static filterOpponentSuggestions(inputElement: HTMLInputElement): void {
+        const datalist = document.getElementById('adversaire-list') as HTMLDataListElement;
+        if (!datalist) return;
+
+        const inputValue = inputElement.value.toLowerCase();
+        const options = datalist.querySelectorAll('option');
+
+        // Reset all options to visible first
+        options.forEach(option => {
+            option.style.display = '';
+        });
+
+        // If there's input, filter options based on the input
+        if (inputValue) {
+            options.forEach(option => {
+                const optionValue = option.value.toLowerCase();
+                if (!optionValue.includes(inputValue)) {
+                    option.style.display = 'none';
+                }
+            });
+        }
     }
 
     private static closeModal(modalOverlay: HTMLElement): void {
