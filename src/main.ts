@@ -34,19 +34,19 @@ class HandballTeamsApp {
                     <div class="splash-logo">
                         <img src="${asmbhLogo}" alt="ASMBH Logo" class="logo-image" />
                     </div>
-                    <h1>Handball Teams</h1>
-                    <p>Team Management System</p>
+                    <h1>Équipes de Handball</h1>
+                    <p>Système de Gestion d'Équipes</p>
                 </div>
                 <div class="splash-form">
                     <div class="form-group">
-                        <label for="password-input">Enter Password:</label>
-                        <input type="password" id="password-input" class="password-input" placeholder="Password" />
+                        <label for="password-input">Entrez le Mot de Passe:</label>
+                        <input type="password" id="password-input" class="password-input" placeholder="Mot de passe" />
                     </div>
-                    <button id="login-btn" class="btn btn-primary">Access System</button>
+                    <button id="login-btn" class="btn btn-primary">Accéder au Système</button>
                     <div id="error-message" class="error-message" style="display: none;"></div>
                 </div>
                 <div class="splash-footer">
-                    <p>© 2025 Handball Teams Management</p>
+                    <p>© 2025 Gestion des Équipes de Handball</p>
                 </div>
             </div>
         `;
@@ -76,7 +76,7 @@ class HandballTeamsApp {
 
     private async handleLogin(password: string, splashOverlay: HTMLElement, errorMessage: HTMLElement): Promise<void> {
         if (!password.trim()) {
-            this.showError(errorMessage, 'Please enter a password');
+            this.showError(errorMessage, 'Veuillez entrer un mot de passe');
             return;
         }
 
@@ -86,7 +86,7 @@ class HandballTeamsApp {
         try {
             // Show loading state
             loginBtn.disabled = true;
-            loginBtn.textContent = 'Loading...';
+            loginBtn.textContent = 'Chargement...';
             errorMessage.style.display = 'none';
 
             // Try to load resources with the provided password
@@ -99,7 +99,7 @@ class HandballTeamsApp {
 
         } catch (error) {
             // Show error message
-            this.showError(errorMessage, 'Invalid password. Please try again.');
+            this.showError(errorMessage, 'Mot de passe invalide. Veuillez réessayer.');
             loginBtn.disabled = false;
             loginBtn.textContent = originalText;
 
@@ -172,8 +172,8 @@ class HandballTeamsApp {
                 <h3>${team.name}</h3>
                 <p>${team.description}</p>
                 <div style="margin-top: 15px; text-align: center; display: flex; gap: 10px; justify-content: center; flex-wrap: wrap;">
-                    <button class="btn btn-details" data-team-id="${team.id}">View Details</button>
-                    <button class="btn btn-composition" data-team-id="${team.id}">Team Composition</button>
+                    <button class="btn btn-details" data-team-id="${team.id}">Voir Détails</button>
+                    <button class="btn btn-composition" data-team-id="${team.id}">Composition d'Équipe</button>
                 </div>
             </div>
         `;

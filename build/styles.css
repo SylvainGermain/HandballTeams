@@ -1746,10 +1746,11 @@ h1 {
     margin-bottom: 2rem;
     font-weight: 600;
     text-align: center !important;
-    display: flex;
+    display: grid;
     align-items: center;
     justify-content: center;
     gap: 2rem;
+    grid-template-columns: 1fr 0.25fr 1fr;
 }
 
 .team-container {
@@ -1875,6 +1876,13 @@ h1 {
     gap: 1rem;
 }
 
+.match-details-grid-convoc {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+
 .detail-item {
     display: flex;
     justify-content: space-between;
@@ -1893,6 +1901,11 @@ h1 {
 .detail-value {
     color: var(--font-color2);
     font-weight: 500;
+}
+
+
+.match-details {
+    font-size: 1.4rem;
 }
 
 /* Responsive adjustments for summary */
