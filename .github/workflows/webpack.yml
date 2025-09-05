@@ -25,4 +25,5 @@ jobs:
     - name: Build
       run: |
         npm install
+        npm install -g webpack webpack-cli
         npx webpack --mode=production
