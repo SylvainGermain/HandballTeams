@@ -34,6 +34,10 @@ jobs:
         name: Check Node Version
       - name: Checkout
         uses: actions/checkout@v4
+      - run: npm install
+        name: install npm packages
+      - run: npm run build:static
+        name: create built files
       - name: Setup Pages
         uses: actions/configure-pages@v5
         
