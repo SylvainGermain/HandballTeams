@@ -36,6 +36,7 @@ jobs:
         uses: actions/checkout@v4
       - run: npm install
         name: install npm packages
+      - run: ls -la node_modules
       - run: npm run build:static
         name: create built files
       - name: Setup Pages
