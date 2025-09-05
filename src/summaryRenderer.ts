@@ -2,6 +2,7 @@ import { Post, TeamCompositionSummary } from './model';
 import { PlayerHelper } from './player';
 import { Resources } from './resources';
 import landImage from '../resources/land.png';
+import { SummaryExportMode } from './export';
 
 export enum PlayerLayout {
     GRID = 'grid',
@@ -45,7 +46,7 @@ export class SummaryRenderer {
 
         return `
             <div class="match-glow">
-                <h1 class="match-day-title">Match Day</h1>
+                <h1 class="match-day-title">Jour de Match</h1>
                 <h2 class="match-title">
                     <div class="team-container">
                         <span class="${classes[0]}">${teams[0]}</span>
@@ -86,7 +87,7 @@ export class SummaryRenderer {
         return `
             <div class="players-summary ${layoutClass}">
                 <div class="section-wrapper">
-                    <h3 class="section-heading">Selection (${summary.majorPlayers.length + summary.substitutes.length})</h3>
+                    <h3 class="section-heading">Sélection (${summary.majorPlayers.length + summary.substitutes.length})</h3>
                     <div class="players-section" style="background-image: url('${landImage}'); background-size: contain; background-position: center; background-repeat: no-repeat;">
                         ${majorPlayersHTML}
                         ${substitutesHTML}
@@ -180,7 +181,7 @@ export class SummaryRenderer {
             <div class="players-summary ${layoutClass}">
                 ${summary.majorPlayers.length > 0 ? `
                     <div class="section-wrapper">
-                        <h3 class="section-heading">Major Players (${summary.majorPlayers.length})</h3>
+                        <h3 class="section-heading">Joueurs Principaux (${summary.majorPlayers.length})</h3>
                         <div class="players-section">
                             ${majorPlayersHTML}
                         </div>
@@ -189,7 +190,7 @@ export class SummaryRenderer {
 
                 ${summary.substitutes.length > 0 ? `
                     <div class="section-wrapper">
-                        <h3 class="section-heading">Substitutes (${summary.substitutes.length})</h3>
+                        <h3 class="section-heading">Remplaçants (${summary.substitutes.length})</h3>
                         <div class="players-section">
                             ${substitutesHTML}
                         </div>
@@ -208,29 +209,77 @@ export class SummaryRenderer {
         `;
     }
 
-    static createMatchDetailsSection(summary: TeamCompositionSummary): string {
-        return `
-            <div class="match-details">
-                <h3>Match Details</h3>
-                <div class="match-details-grid">
-                    <div class="detail-item">
-                        <span class="detail-label">Date:</span>
-                        <span class="detail-value">${summary.matchInfo.date || 'TBD'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Time:</span>
-                        <span class="detail-value">${summary.matchInfo.time || 'TBD'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Location:</span>
-                        <span class="detail-value">${summary.matchInfo.location || 'TBD'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label">Meeting Place:</span>
-                        <span class="detail-value">${summary.matchInfo.meetingPlace || 'TBD'}</span>
+    static createMatchDetailsSection(summary: TeamCompositionSummary, mode: SummaryExportMode): string {
+        const matchInfo = summary.matchInfo;
+
+        // Format date in French
+        const formatDateInFrench = (dateString: string): string => {
+            if (!dateString || dateString === 'À déterminer') return 'À déterminer';
+
+            try {
+                const date = new Date(dateString);
+                const days = ['dimanche', 'lundi', 'mardi', 'mercredi', 'jeudi', 'vendredi', 'samedi'];
+                const months = ['janvier', 'février', 'mars', 'avril', 'mai', 'juin',
+                              'juillet', 'août', 'septembre', 'octobre', 'novembre', 'décembre'];
+
+                const dayName = days[date.getDay()];
+                const dayNumber = date.getDate();
+                const monthName = months[date.getMonth()];
+
+                return `${dayName} ${dayNumber} ${monthName}`;
+            } catch (error) {
+                return dateString; // Return original if parsing fails
+            }
+        };
+
+        if (mode !== SummaryExportMode.CONVOC) {
+            return `
+                <div class="match-details">
+                    <h3>Détails du Match</h3>
+                    <div class="match-details-grid">
+                        <div class="detail-item">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${formatDateInFrench(matchInfo.date || '')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Heure:</span>
+                            <span class="detail-value">${matchInfo.time || 'À déterminer'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Lieu:</span>
+                            <span class="detail-value">${matchInfo.location || 'À déterminer'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Point de Rendez-vous:</span>
+                            <span class="detail-value">${matchInfo.meetingPlace || 'À déterminer'}</span>
+                        </div>
                     </div>
                 </div>
-            </div>
+            `;
+        }            // Create custom match details with bigger font and two-line layout
+
+        return `
+                <div class="match-details">
+                    <h3>Détails du Match</h3>
+                    <div class="match-details-grid-convoc">
+                        <div class="detail-item">
+                            <span class="detail-label">Date:</span>
+                            <span class="detail-value">${formatDateInFrench(matchInfo.date || '')}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Heure:</span>
+                            <span class="detail-value">${matchInfo.time || 'À déterminer'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Lieu:</span>
+                            <span class="detail-value">${matchInfo.location || 'À déterminer'}</span>
+                        </div>
+                        <div class="detail-item">
+                            <span class="detail-label">Point de Rendez-vous:</span>
+                            <span class="detail-value">${matchInfo.meetingPlace || 'À déterminer'}</span>
+                        </div>
+                    </div>
+                </div>
         `;
     }
 }

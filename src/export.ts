@@ -15,29 +15,29 @@ export enum SummaryExportMode {
 
 export namespace ExportHelper {
 
-// Helper function to create and configure temporary container
+// Fonction d'aide pour créer et configurer un conteneur temporaire
 function createTempContainer(playersPerPage: number, color: string, columns: number): HTMLElement {
     const tempContainer = document.createElement('div');
     tempContainer.style.position = 'absolute';
     tempContainer.style.left = '-9999px';
     tempContainer.style.top = '-9999px';
 
-    // Optimize container width for better aspect ratio
+    // Optimiser la largeur du conteneur pour un meilleur ratio d'aspect
     const containerWidth = playersPerPage === 1 ? '400px' : '800px';
     tempContainer.style.width = containerWidth;
 
-    // Minimize padding, especially for single player exports
+    // Minimise le padding, surtout pour les exports de joueurs individuels
     const containerPadding = playersPerPage === 1 ? '5px' : '10px';
     tempContainer.style.padding = containerPadding;
     tempContainer.style.backgroundColor = color;
     tempContainer.style.display = 'grid';
 
-    // Dynamic grid layout based on players per page
+    // Mise en page de grille dynamique basée sur le nombre de joueurs par page
     const rows = Math.ceil(playersPerPage / columns);
     tempContainer.style.gridTemplateColumns = `repeat(${columns}, 1fr)`;
     tempContainer.style.gridTemplateRows = `repeat(${rows}, 1fr)`;
 
-    // Minimize gap for better aspect ratio
+    // Minimiser l'espacement pour un meilleur ratio d'aspect
     const gridGap = playersPerPage === 1 ? '5px' : '15px';
     tempContainer.style.gap = gridGap;
     tempContainer.style.justifyItems = 'center';
@@ -47,7 +47,7 @@ function createTempContainer(playersPerPage: number, color: string, columns: num
     return tempContainer;
 }
 
-// Helper function to populate container with player cards
+// Fonction d'aide pour remplir le conteneur avec les cartes de joueurs
 function populateContainer(tempContainer: HTMLElement, players: any[]): void {
     tempContainer.innerHTML = '';
     players.forEach(player => {
@@ -88,27 +88,27 @@ export async function exportPlayersAsImage(teamId: string): Promise<void> {
         const players = getFilteredPlayers(teamId);
         const playersPerPage = players.length
         if (playersPerPage === 0) {
-            alert('No players found for this team (coaches are excluded from bundle export)');
+            alert('Aucun joueur trouvé pour cette équipe (les entraîneurs sont exclus de l\'export en bundle)');
             return;
         }
 
-        // Show a loading indicator
-        exportBtn.textContent = 'Exporting...';
+        // Afficher un indicateur de chargement
+        exportBtn.textContent = 'Export en cours...';
         exportBtn.disabled = true;
 
         const backgroundColor = 'rgba(0,0,0,0)';
-        // Create temporary container
+        // Créer un conteneur temporaire
 
         const columns = Math.min(Math.ceil(Math.sqrt(playersPerPage)), 4); // Max 4 columns
         const tempContainer = createTempContainer(playersPerPage, backgroundColor, columns);
 
-        // Populate container with player cards
+        // Remplir le conteneur avec les cartes de joueurs
         populateContainer(tempContainer, players);
         //   playersSection.style.gridTemplateColumns = 'repeat(4, 1fr)'; // Fixed 4 columns for export
-        // Capture this frame
+        // Capturer cette image
         const canvas = await captureFrame(tempContainer, backgroundColor);
 
-        // Convert to blob and download
+        // Convertir en blob et télécharger
         canvas.toBlob((blob) => {
           if (blob) {
               const url = URL.createObjectURL(blob);
@@ -121,16 +121,16 @@ export async function exportPlayersAsImage(teamId: string): Promise<void> {
               URL.revokeObjectURL(url);
           }
 
-          // Reset button
+          // Réinitialiser le bouton
           exportBtn.textContent = originalText;
           exportBtn.disabled = false;
       }, 'image/png');
 
   } catch (error) {
-      console.error('Error exporting players:', error);
-      alert('Failed to export players image. Please try again.');
+      console.error('Erreur lors de l\'export des joueurs:', error);
+      alert('Échec de l\'export de l\'image des joueurs. Veuillez réessayer.');
 
-      // Reset button on error
+      // Réinitialiser le bouton en cas d'erreur
       exportBtn.textContent = originalText;
       exportBtn.disabled = false;
   }
@@ -139,11 +139,11 @@ export async function exportPlayersAsImage(teamId: string): Promise<void> {
 export async function exportPlayersAsBundle(teamId: string, playersPerPage: number = 4): Promise<void> {
 
   try {
-      // Show a loading indicator
+      // Afficher un indicateur de chargement
       const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
-      const originalText = exportBtn?.textContent || 'Export as Bundle';
+      const originalText = exportBtn?.textContent || 'Exporter en Bundle';
       if (exportBtn) {
-          exportBtn.textContent = 'Exporting...';
+          exportBtn.textContent = 'Export en cours...';
           exportBtn.disabled = true;
       }
 
@@ -151,7 +151,7 @@ export async function exportPlayersAsBundle(teamId: string, playersPerPage: numb
       const players = getFilteredPlayers(teamId);
 
       if (players.length === 0) {
-          alert('No players found for this team (coaches are excluded from bundle export)');
+          alert('Aucun joueur trouvé pour cette équipe (les entraîneurs sont exclus de l\'export en bundle)');
           return;
       }
 
@@ -267,8 +267,8 @@ ${Array.from({ length: totalFrames }, (_, i) => {
       }
 
   } catch (error) {
-      console.error('Error exporting players as ZIP Bundle:', error);
-      alert('Failed to export players as ZIP Bundle. Please try again.');
+      console.error('Erreur lors de l\'export des joueurs en bundle ZIP:', error);
+      alert('Échec de l\'export des joueurs en bundle ZIP. Veuillez réessayer.');
 
       // Reset button on error
       const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
@@ -286,7 +286,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
       const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
       const originalText = exportBtn?.textContent || 'Export Bundle';
       if (exportBtn) {
-          exportBtn.textContent = 'Creating Movie...';
+          exportBtn.textContent = 'Création Vidéo...';
           exportBtn.disabled = true;
       }
 
@@ -294,7 +294,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
       const players = getFilteredPlayers(teamId);
 
       if (players.length === 0) {
-          alert('No players found for this team (coaches are excluded from movie export)');
+          alert('Aucun joueur trouvé pour cette équipe (les entraîneurs sont exclus de l\'export vidéo)');
           return;
       }
 
@@ -312,7 +312,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
           // Update visual progress (90% for capture, 10% for movie generation)
           const captureProgress = Math.round((frameIndex / totalFrames) * 90);
           if (exportBtn) {
-              exportBtn.textContent = `Creating Movie... ${frameIndex + 1}/${totalFrames}`;
+              exportBtn.textContent = `Création Vidéo... ${frameIndex + 1}/${totalFrames}`;
               exportBtn.style.background = `linear-gradient(90deg, #fd7e14 ${captureProgress}%, #e55a00 ${captureProgress}%)`;
           }
 
@@ -337,7 +337,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
 
       // Step 3: Create animated GIF from frames
       if (exportBtn) {
-          exportBtn.textContent = 'Creating GIF Animation...';
+          exportBtn.textContent = 'Création Animation GIF...';
           exportBtn.style.background = 'linear-gradient(90deg, #fd7e14 95%, #e55a00 95%)';
       }
 
@@ -345,7 +345,7 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
         if (exportBtn) {
             const gifProgress = Math.round(95 + (progress * 5)); // 95-100%
             exportBtn.style.background = `linear-gradient(90deg, #fd7e14 ${gifProgress}%, #e55a00 ${gifProgress}%)`;
-            exportBtn.textContent = `Creating GIF... ${Math.round(progress * 100)}%`;
+            exportBtn.textContent = `Création GIF... ${Math.round(progress * 100)}%`;
         }
         };
 
@@ -360,8 +360,8 @@ export async function exportPlayersAsMovie(teamId: string, playersPerPage: numbe
         await exportGIFFrames(frames, `${teamId}_players_animated_${playersPerPage}per_${new Date().toISOString().split('T')[0]}`,
             progressCallback, endCallback);
   } catch (error) {
-      console.error('Error creating movie export:', error);
-      alert('Failed to create movie export. Please try again.');
+      console.error('Erreur lors de la création de l\'export vidéo:', error);
+      alert('Échec de la création de l\'export vidéo. Veuillez réessayer.');
 
       // Reset button on error
       const exportBtn = document.querySelector('.btn-export-bundle') as HTMLButtonElement;
@@ -420,7 +420,7 @@ export async function exportGIFFrames(
                 console.log(`Successfully created animated GIF with ${frames.length} frames`);
             } catch (error) {
                 console.error('Error downloading GIF:', error);
-                alert('GIF created successfully but download failed. Please try again.');
+                alert('GIF créé avec succès mais le téléchargement a échoué. Veuillez réessayer.');
                 reject(error)
             }
 
@@ -447,7 +447,7 @@ export async function exportGIFFrames(
 
 export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName: string): Promise<void> {
   if (!playerCard) {
-      alert('No player card found to export');
+      alert('Aucune carte de joueur trouvée à exporter');
       return;
   }
 
@@ -501,7 +501,7 @@ export async function exportSinglePlayerCard(playerCard: HTMLElement, playerName
 
   } catch (error) {
       console.error('Error exporting single player card:', error);
-      alert('Failed to export player card. Please try again.');
+      alert('Échec de l\'export de la carte du joueur. Veuillez réessayer.');
   }
 }
 
@@ -549,7 +549,7 @@ export async function exportSummary(summary: TeamCompositionSummary, fileName: s
       // Build the content using the modular methods
       const titleHTML = SummaryRenderer.createSummaryTitle(summary);
       const playersHTML = SummaryRenderer.createPlayersAndCoachSection(summary, options);
-      const detailsHTML = SummaryRenderer.createMatchDetailsSection(summary);
+      const detailsHTML = SummaryRenderer.createMatchDetailsSection(summary, mode);
 
       // Combine all sections with export-optimized styling
       offscreenDiv.innerHTML = `
@@ -599,8 +599,8 @@ export async function exportSummary(summary: TeamCompositionSummary, fileName: s
       }, 'image/jpeg', 0.9);
 
   } catch (error) {
-      console.error('Error exporting summary:', error);
-      alert('Failed to export summary image. Please try again.');
+      console.error('Erreur lors de l\'export du résumé:', error);
+      alert('Échec de l\'export de l\'image du résumé. Veuillez réessayer.');
 
       // Reset button on error
       const exportBtn = document.querySelector('#export-summary-btn') as HTMLButtonElement;

@@ -4,8 +4,8 @@ import { PlayerHelper } from './player';
 import { ExportHelper } from './export';
 import { Resources } from './resources';
 
-const ExportMovie = '🎬 Export Movie';
-const ExportZip = '📦 Export ZIP';
+const ExportMovie = '🎬 Exporter Vidéo';
+const ExportZip = '📦 Exporter ZIP';
 export class TeamDetailsModal {
 
     public static show(team: Team): void {
@@ -27,7 +27,7 @@ export class TeamDetailsModal {
 
         // Validate the input
         if (playersPerPage < 1 || playersPerPage > 20) {
-            alert('Please enter a number between 1 and 20 for players per page');
+            alert('Veuillez entrer un nombre entre 1 et 20 pour les joueurs par page');
             return;
         }
 
@@ -130,7 +130,7 @@ export class TeamDetailsModal {
             <p class="team-description">${team.description}</p>
             <div>
                 <div class="stats-row">
-                    <span class="stats-label">Total Players:</span>
+                    <span class="stats-label">Total Joueurs:</span>
                     <span class="stats-value">${playersCount}</span>
                 </div>
             </div>
@@ -146,14 +146,14 @@ export class TeamDetailsModal {
 
         let playersHTML = `
             <div class="players-wrapper">
-                <h3 class="main-heading">Team Members</h3>
+                <h3 class="main-heading">Membres de l'Équipe</h3>
         `;
 
         // Add coaches section if there are any coaches
         if (coaches.length > 0) {
             playersHTML += `
                 <div class="section-wrapper">
-                    <h4 class="section-heading">Coaching Staff</h4>
+                    <h4 class="section-heading">Staff d'Entraînement</h4>
                     <div class="players-section">
             `;
 
@@ -172,25 +172,25 @@ export class TeamDetailsModal {
             playersHTML += `
                 <div>
                     <div class="section-wrapper">
-                        <h4 class="section-heading">Players</h4>
+                        <h4 class="section-heading">Joueurs</h4>
                         <div class="export-buttons">
                             <button class="btn export-btn btn-export" onclick="TeamDetailsModal.exportPlayersAsImage('${team.id}')">
-                                📸 Export as Image
+                                📸 Exporter comme Image
                             </button>
                             <div class="bundle-export-container">
-                                <label for="players-per-page-${team.id}" class="players-per-page-label">Players per page:</label>
+                                <label for="players-per-page-${team.id}" class="players-per-page-label">Joueurs par page:</label>
                                 <input type="number" id="players-per-page-${team.id}" min="1" max="20" value="4" class="players-per-page-input" placeholder="4">
 
                                 <div class="export-type-selector">
-                                    <label class="export-type-label">Export as:</label>
+                                    <label class="export-type-label">Exporter comme:</label>
                                     <div class="radio-group">
                                         <label class="radio-option">
                                             <input type="radio" name="export-type-${team.id}" value="zip" checked>
-                                            <span class="radio-text">📦 Files</span>
+                                            <span class="radio-text">📦 Fichiers</span>
                                         </label>
                                         <label class="radio-option">
                                             <input type="radio" name="export-type-${team.id}" value="movie">
-                                            <span class="radio-text">🎬 Movie</span>
+                                            <span class="radio-text">🎬 Vidéo</span>
                                         </label>
                                     </div>
                                 </div>
@@ -237,12 +237,12 @@ export class TeamDetailsModal {
 // Make TeamDetailsModal available globally for onclick handlers
 (window as any).TeamDetailsModal = TeamDetailsModal;
 
-// Global handlers for player card double-click/double-touch export
+// Gestionnaires globaux pour l'export par double-clic/double-toucher sur les cartes de joueurs
 let touchStartTime: number = 0;
 let touchCount: number = 0;
 
 (window as any).handlePlayerCardDoubleClick = function(cardElement: HTMLElement) {
-    const playerName = cardElement.getAttribute('data-player-name') || 'Unknown Player';
+    const playerName = cardElement.getAttribute('data-player-name') || 'Joueur Inconnu';
     ExportHelper.exportSinglePlayerCard(cardElement, playerName);
 };
 
@@ -259,14 +259,14 @@ let touchCount: number = 0;
 
     if (touchCount === 2) {
         event.preventDefault();
-        const playerName = cardElement.getAttribute('data-player-name') || 'Unknown Player';
+        const playerName = cardElement.getAttribute('data-player-name') || 'Joueur Inconnu';
         ExportHelper.exportSinglePlayerCard(cardElement, playerName);
         touchCount = 0;
     }
 };
 
 (window as any).handlePlayerCardTouchEnd = function() {
-    // Reset touch count after a delay if no second touch occurs
+    // Réinitialise le compteur de touchers après un délai si aucun second toucher n'a lieu
     setTimeout(() => {
         if (touchCount === 1 && Date.now() - touchStartTime > 300) {
             touchCount = 0;

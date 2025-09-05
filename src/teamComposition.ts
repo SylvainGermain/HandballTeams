@@ -155,7 +155,7 @@ export class TeamCompositionModal {
         }
 
         return `
-            <h2 class="composition-title">Team Composition - ${team.name}</h2>
+            <h2 class="composition-title">Composition d'équipe - ${team.name}</h2>
             ${stepIndicator}
             ${content}
         `;
@@ -166,19 +166,19 @@ export class TeamCompositionModal {
             <div class="step-indicator">
                 <div class="step ${this.currentStep >= 1 ? 'active' : ''} ${this.currentStep > 1 ? 'completed' : ''}">
                     <span class="step-number">1</span>
-                    <span class="step-label">Match Info</span>
+                    <span class="step-label">Infos du Match</span>
                 </div>
                 <div class="step ${this.currentStep >= 2 ? 'active' : ''} ${this.currentStep > 2 ? 'completed' : ''}">
                     <span class="step-number">2</span>
-                    <span class="step-label">Team Selection</span>
+                    <span class="step-label">Sélection de l'Équipe</span>
                 </div>
                 <div class="step ${this.currentStep >= 3 ? 'active' : ''} ${this.currentStep > 3 ? 'completed' : ''}">
                     <span class="step-number">3</span>
-                    <span class="step-label">Summary</span>
+                    <span class="step-label">Résumé</span>
                 </div>
                 <div class="step ${this.currentStep >= 4 ? 'active' : ''}">
                     <span class="step-number">4</span>
-                    <span class="step-label">Match Results</span>
+                    <span class="step-label">Résultats du Match</span>
                 </div>
             </div>
         `;
@@ -208,20 +208,20 @@ export class TeamCompositionModal {
 
         return `
             <div class="step-content">
-                <h3>Match Information</h3>
+                <h3>Informations du Match</h3>
                 <form class="match-info-form">
                     <div class="form-group-compo">
-                        <label for="opposite-team">Opposite Team:</label>
+                        <label for="opposite-team">Adversaire:</label>
                         <div class="opponent-input-container">
-                            <input type="text" id="opposite-team" list="adversaire-list" value="${matchInfo.oppositeTeam}" placeholder="Select from list or type opponent team name" autocomplete="off">
+                            <input type="text" id="opposite-team" list="adversaire-list" value="${matchInfo.oppositeTeam}" placeholder="Sélectionnez dans la liste ou tapez le nom de l'équipe adverse" autocomplete="off">
                             <datalist id="adversaire-list">
                                 ${adversaireOptions}
                             </datalist>
                         </div>
                     </div>
                     <div class="form-group-compo">
-                        <label for="location">Location:</label>
-                        <input type="text" id="location" value="${matchInfo.location}" placeholder="Enter match location">
+                        <label for="location">Lieu de match:</label>
+                        <input type="text" id="location" value="${matchInfo.location}" placeholder="Entrez le lieu du match">
                     </div>
                     <div class="form-row">
                         <div class="form-group-compo">
@@ -229,28 +229,28 @@ export class TeamCompositionModal {
                             <input type="date" id="match-date" value="${matchInfo.date}">
                         </div>
                         <div class="form-group-compo">
-                            <label for="match-time">Time:</label>
+                            <label for="match-time">Heure:</label>
                             <input type="time" id="match-time" value="${matchInfo.time}">
                         </div>
                     </div>
                     <div class="form-group-compo">
-                        <label for="meeting-place">Meeting Place:</label>
-                        <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Enter meeting location">
+                        <label for="meeting-place">Lieu de rdv:</label>
+                        <input type="text" id="meeting-place" value="${matchInfo.meetingPlace}" placeholder="Entrez le lieu de rendez-vous">
                     </div>
                     <div class="form-group-compo">
                         <label class="checkbox-label">
                             <input type="checkbox" id="is-home" ${matchInfo.isHome ? 'checked' : ''}>
-                            <span class="checkbox-text">Montigny is receiving (playing at home)</span>
+                            <span class="checkbox-text">Match à domicile</span>
                         </label>
                     </div>
                 </form>
 
                 <div class="step-actions">
-                    <button class="btn btn-warning" id="clear-match-data-btn" title="Clear all match information">🗑️ Clear Match Data</button>
+                    <button class="btn btn-warning" id="clear-match-data-btn" title="Effacer information de match">🗑️ Effacer Match</button>
                     <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="all">
-                    <button class="btn btn-info" id="load-composition-btn">📁 Load Match </button>
-                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
-                    <button class="btn btn-primary" id="next-step-btn">Next Step</button>
+                    <button class="btn btn-info" id="load-composition-btn">📁 Charger Match </button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Enregistrer Match</button>
+                    <button class="btn btn-primary" id="next-step-btn">Étape Suivante</button>
                 </div>
             </div>
         `;
@@ -300,7 +300,7 @@ export class TeamCompositionModal {
                     <div class="position-selection">
                         <h4>${position}</h4>
                         <select id="position-${position}" class="player-select">
-                            <option value="">Select Player</option>
+                            <option value="">Choisir joueur</option>
                             ${availablePlayersForPosition.map(player => {
                                 const displayName = this.getDisplayedName(player);
                                 const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
@@ -331,15 +331,15 @@ export class TeamCompositionModal {
                     <div class="position-selection">
                         <h4>${position}</h4>
                         <select id="position-${position}" class="player-select">
-                            <option value="">Select Player</option>
-                            ${currentPositionPlayers.length > 0 ? `<optgroup label="--- ${position} Players ---">` : ''}
+                            <option value="">Choisir joueur</option>
+                            ${currentPositionPlayers.length > 0 ? `<optgroup label="--- ${position} Joueurs ---">` : ''}
                             ${currentPositionPlayers.map(player => {
                                 const displayName = this.getDisplayedName(player);
                                 const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
                                 return `<option value="${displayName}" ${isSelected ? 'selected' : ''}>${displayName} (${player.poste}${player.posteb ? '/' + player.posteb : ''}${player.postec ? '/' + player.postec : ''})</option>`;
                             }).join('')}
                             ${currentPositionPlayers.length > 0 ? '</optgroup>' : ''}
-                            ${otherPositionPlayers.length > 0 && currentPositionPlayers.length > 0 ? '<optgroup label="--- Other Players ---">' : ''}
+                            ${otherPositionPlayers.length > 0 && currentPositionPlayers.length > 0 ? '<optgroup label="--- Autres Joueurs ---">' : ''}
                             ${otherPositionPlayers.map(player => {
                                 const displayName = this.getDisplayedName(player);
                                 const isSelected = selectedPlayer && this.getDisplayedName(selectedPlayer) === displayName;
@@ -409,13 +409,13 @@ export class TeamCompositionModal {
             return `
                 <div class="substitute-selection">
                     <select class="substitute-select" data-index="${index}">
-                        <option value="">Select Substitute ${index + 1}</option>
+                        <option value="">Choisir remplaçant ${index + 1}</option>
                         ${sortedAvailableForSubstitutes.map(p => {
                             const pDisplayName = this.getDisplayedName(p);
                             return `<option value="${pDisplayName}" ${pDisplayName === displayName ? 'selected' : ''}>${pDisplayName} (${p.poste}${p.posteb ? '/' + p.posteb : ''}${p.postec ? '/' + p.postec : ''})</option>`;
                         }).join('')}
                     </select>
-                    ${index >= 5 ? `<button class="btn btn-remove" onclick="TeamCompositionModal.removeSubstitute(${index})">Remove</button>` : ''}
+                    ${index >= 5 ? `<button class="btn btn-remove" onclick="TeamCompositionModal.removeSubstitute(${index})">Supprimer</button>` : ''}
                 </div>
             `;
         }).join('');
@@ -435,11 +435,11 @@ export class TeamCompositionModal {
                     <h3>Match Summary</h3>
                     <div class="match-summary-grid">
                         <div class="summary-item">
-                            <span class="summary-label">Opposite Team:</span>
+                            <span class="summary-label">Adversaire:</span>
                             <span class="summary-value">${matchInfo.oppositeTeam}</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Location:</span>
+                            <span class="summary-label">Lieu de match:</span>
                             <span class="summary-value">${matchInfo.location}</span>
                         </div>
                         <div class="summary-item">
@@ -447,53 +447,53 @@ export class TeamCompositionModal {
                             <span class="summary-value">${matchInfo.date}</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Time:</span>
+                            <span class="summary-label">Heure:</span>
                             <span class="summary-value">${matchInfo.time}</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Meeting Place:</span>
+                            <span class="summary-label">Lieu de rdv:</span>
                             <span class="summary-value">${matchInfo.meetingPlace}</span>
                         </div>
                         <div class="summary-item">
-                            <span class="summary-label">Match Type:</span>
-                            <span class="summary-value">${matchInfo.isHome ? '🏠 Home Game (Receiving)' : '✈️ Away Game'}</span>
+                            <span class="summary-label">Type de match:</span>
+                            <span class="summary-value">${matchInfo.isHome ? '🏠 Match à Domicile (Réception)' : '✈️ Match à l\'Extérieur'}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="step-actions">
-                    <button class="btn btn-secondary" id="prev-step-btn-top">Previous</button>
-                    <button class="btn btn-warning" id="clear-saved-btn-top" title="Clear all saved player selections">🗑️ Clear Saved Data</button>
+                    <button class="btn btn-secondary" id="prev-step-btn-top">Précédent</button>
+                    <button class="btn btn-warning" id="clear-saved-btn-top" title="Effacer toutes les sélections de joueurs enregistrées">🗑️ Effacer les données enregistrées</button>
                     <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="composition">
-                    <button class="btn btn-info" id="load-composition-btn" load-mode="composition">📁 Load Composition</button>
-                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
-                    <button class="btn btn-primary" id="next-step-btn-top">Next Step</button>
+                    <button class="btn btn-info" id="load-composition-btn" load-mode="composition">📁 Charger la composition</button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Enregistrer le match</button>
+                    <button class="btn btn-primary" id="next-step-btn-top">Étape suivante</button>
                 </div>
 
                 <div class="team-selection-container">
                     <div class="major-players-section">
-                        <h3>Major Players (8 positions including Coach)</h3>
+                        <h3>Joueurs majeurs (7 postes et le coach)</h3>
                         <div class="positions-grid">
                             ${positionsHTML}
                         </div>
                     </div>
 
                     <div class="substitutes-section">
-                        <h3>Substitutes (5 base positions + up to 2 additional)</h3>
+                        <h3>Remplaçants (5 postes de base + jusqu'à 2 supplémentaires)</h3>
                         <div class="substitutes-container">
                             ${substitutesHTML}
                             ${substituteSlots < 7 ?
-                                '<button class="btn btn-add" id="add-substitute-btn">Add Additional Substitute</button>' :
-                                '<p class="max-substitutes">Maximum substitutes reached (7)</p>'
+                                '<button class="btn btn-add" id="add-substitute-btn">Ajouter un remplaçant supplémentaire</button>' :
+                                '<p class="max-substitutes">Nombre maximum de remplaçants atteint (7)</p>'
                             }
                         </div>
                     </div>
                 </div>
 
                 <div class="step-actions">
-                    <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
-                    <button class="btn btn-warning" id="clear-saved-btn" title="Clear all saved player selections">🗑️ Clear Saved Data</button>
-                    <button class="btn btn-primary" id="next-step-btn">Next Step</button>
+                    <button class="btn btn-secondary" id="prev-step-btn">Précédent</button>
+                    <button class="btn btn-warning" id="clear-saved-btn" title="Effacer toutes les sélections de joueurs">🗑️ Effacer les données enregistrées</button>
+                    <button class="btn btn-primary" id="next-step-btn">Étape suivante</button>
                 </div>
             </div>
         `;
@@ -511,17 +511,17 @@ export class TeamCompositionModal {
             <div class="step-content summary-content">
                 ${SummaryRenderer.createSummaryTitle(this.teamCompositionSummary)}
                 ${SummaryRenderer.createPlayersAndCoachSection(this.teamCompositionSummary, stack)}
-                ${SummaryRenderer.createMatchDetailsSection(this.teamCompositionSummary)}
+                ${SummaryRenderer.createMatchDetailsSection(this.teamCompositionSummary, SummaryExportMode.POSTMATCH)}
 
                 <div class="step-actions">
-                    <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <button class="btn btn-secondary" id="prev-step-btn">Précédent</button>
                     <div class="export-group">
                         <button class="btn btn-export" id="export-convoc-btn">📋 CONVOC</button>
-                        <button class="btn btn-copy" id="copy-summary-btn">📝 Copy Text</button>
+                        <button class="btn btn-copy" id="copy-summary-btn">📝 Copier Texte</button>
                         <button class="btn btn-export" id="export-prematch-btn">⚽ PREMATCH</button>
                     </div>
-                    <button class="btn btn-save" id="save-composition-btn">💾 Save Match</button>
-                    <button class="btn btn-primary" id="next-step-btn">Next Step</button>
+                    <button class="btn btn-save" id="save-composition-btn">💾 Enregistrer Match</button>
+                    <button class="btn btn-primary" id="next-step-btn">Étape Suivante</button>
                 </div>
             </div>
         `;
@@ -547,18 +547,18 @@ export class TeamCompositionModal {
 
         return `
             <div class="step-content">
-                <h3>Match Results</h3>
+                <h3>Résultats du Match</h3>
                 <div class="match-results-form">
                     <div class="score-section">
-                        <h4>Final Score</h4>
+                        <h4>Score Final</h4>
                         <div class="score-input-container">
                             <div class="team-score">
-                                <label for="home-score">${matchInfo.isHome ? 'Montigny' : matchInfo.oppositeTeam} (Home):</label>
+                                <label for="home-score">${matchInfo.isHome ? 'Montigny' : matchInfo.oppositeTeam} (Domicile):</label>
                                 <input type="number" id="home-score" value="${matchResults.homeScore}" min="0" max="99">
                             </div>
                             <div class="score-separator">-</div>
                             <div class="team-score">
-                                <label for="away-score">${matchInfo.isHome ? matchInfo.oppositeTeam : 'Montigny'} (Away):</label>
+                                <label for="away-score">${matchInfo.isHome ? matchInfo.oppositeTeam : 'Montigny'} (Extérieur):</label>
                                 <input type="number" id="away-score" value="${matchResults.awayScore}" min="0" max="99">
                             </div>
                         </div>
@@ -566,30 +566,30 @@ export class TeamCompositionModal {
 
 
                     <div class="highlights-section">
-                        <h4>Match Highlights</h4>
+                        <h4>Temps Forts du Match</h4>
                         <div class="highlights-container">
                             ${matchResults.highlights.map((highlight, index) => `
                                 <div class="highlight-item">
-                                    <input type="text" class="highlight-input" data-index="${index}" value="${highlight}" placeholder="Enter match highlight">
+                                    <input type="text" class="highlight-input" data-index="${index}" value="${highlight}" placeholder="Entrez un temps fort du match">
                                     <button class="btn btn-remove-small" onclick="TeamCompositionModal.removeHighlight(${index})">×</button>
                                 </div>
                             `).join('')}
-                            <button class="btn btn-add-small" id="add-highlight-btn">+ Add Highlight</button>
+                            <button class="btn btn-add-small" id="add-highlight-btn">+ Ajouter un Temps Fort</button>
                         </div>
                     </div>
 
                     <div class="post-match-notes-section">
-                        <h4>Post-Match Notes</h4>
-                        <textarea id="post-match-notes" placeholder="Add any additional notes about the match...">${matchResults.postMatchNotes}</textarea>
+                        <h4>Notes Post-Match</h4>
+                        <textarea id="post-match-notes" placeholder="Ajoutez des notes supplémentaires sur le match...">${matchResults.postMatchNotes}</textarea>
                     </div>
                 </div>
 
                 <div class="step-actions">
-                    <button class="btn btn-secondary" id="prev-step-btn">Previous</button>
+                    <button class="btn btn-secondary" id="prev-step-btn">Précédent</button>
                     <input type="file" id="load-composition-file" accept=".json" style="display: none;" load-mode="all">
-                    <button class="btn btn-info" id="load-composition-btn">📁 Load Match </button>
-                    <button class="btn btn-export" id="export-match-result-btn">📱 Export for Social Media</button>
-                    <button class="btn btn-success" id="finish-composition-btn">Finish</button>
+                    <button class="btn btn-info" id="load-composition-btn">📁 Charger Match </button>
+                    <button class="btn btn-export" id="export-match-result-btn">📱 Exporter pour Réseaux Sociaux</button>
+                    <button class="btn btn-success" id="finish-composition-btn">Terminer</button>
                 </div>
             </div>
         `;
@@ -813,7 +813,7 @@ export class TeamCompositionModal {
         const totalSelected = this.teamCompositionSummary.majorPlayers.length + (this.teamCompositionSummary.coach ? 1 : 0);
 
         if (totalSelected < 8) {
-            alert('Please select all 8 major players (including coach).');
+            alert('Veuillez sélectionner les 7 joueurs majeurs et le coach.');
             return false;
         }
         return true;
@@ -920,7 +920,7 @@ export class TeamCompositionModal {
 
     public static clearSavedData(team: Team): void {
         // Ask for confirmation before clearing
-        if (confirm('Are you sure you want to clear all saved player selections? This will keep match information but clear all player selections.')) {
+        if (confirm('Êtes-vous sûr de vouloir effacer toutes les sélections de joueurs enregistrées ? Cela conservera les informations du match mais effacera toutes les sélections de joueurs.')) {
             // Store current match info before clearing
             const currentMatchInfo = this.teamCompositionSummary?.matchInfo || this.initComposition().matchInfo;
 
@@ -935,13 +935,13 @@ export class TeamCompositionModal {
             // Update the modal content to reflect the cleared state
             this.updateModalContent(team);
             // Show confirmation message
-            alert('Player selections have been cleared successfully. Match information has been preserved.');
+            alert('Les sélections de joueurs ont été effacées avec succès. Les informations du match ont été préservées.');
         }
     }
 
     public static clearMatchData(team: Team): void {
         // Ask for confirmation before clearing
-        if (confirm('Are you sure you want to clear all match information? This will only clear the match details, not player selections.')) {
+        if (confirm('Êtes-vous sûr de vouloir effacer toutes les informations du match ? Cela effacera seulement les détails du match, pas les sélections de joueurs.')) {
             // Reset only the match info
             this.teamCompositionSummary!.matchInfo = {
                 oppositeTeam: '',
@@ -956,7 +956,7 @@ export class TeamCompositionModal {
             // Update the modal content to reflect the cleared match info
             this.updateModalContent(team);
             // Show confirmation message
-            alert('Match information has been cleared successfully.');
+            alert('Les informations du match ont été effacées avec succès.');
         }
     }
 
@@ -1075,7 +1075,7 @@ export class TeamCompositionModal {
 
     private static async exportMatchResults(): Promise<void> {
         if (!this.teamCompositionSummary?.matchResults) {
-            alert('No match results to export.');
+            alert('Aucun résultat de match à exporter.');
             return;
         }
 
@@ -1083,7 +1083,7 @@ export class TeamCompositionModal {
             // Show progress message
             const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
             if (exportBtn) {
-                exportBtn.textContent = 'Creating GIF...';
+                exportBtn.textContent = 'Création du GIF...';
                 exportBtn.disabled = true;
             }
 
@@ -1108,12 +1108,12 @@ export class TeamCompositionModal {
 
         } catch (error) {
             console.error('Failed to export match results as GIF:', error);
-            alert('Failed to create GIF. Please try again.');
+            alert('Échec de la création du GIF. Veuillez réessayer.');
         } finally {
             // Restore button state
             const exportBtn = document.getElementById('export-match-result-btn') as HTMLButtonElement;
             if (exportBtn) {
-                exportBtn.textContent = '📱 Export for Social Media';
+                exportBtn.textContent = '📱 Exporter pour Réseaux Sociaux';
                 exportBtn.disabled = false;
             }
         }
@@ -1330,7 +1330,7 @@ export class TeamCompositionModal {
 
     private static saveCompositionToFile(): void {
         if (!this.teamCompositionSummary) {
-            alert('No team composition to save.');
+            alert('Aucune composition d\'équipe à enregistrer.');
             return;
         }
 
@@ -1362,10 +1362,10 @@ export class TeamCompositionModal {
             document.body.removeChild(a);
             URL.revokeObjectURL(url);
 
-            alert('Team composition saved successfully! 💾');
+            alert('Composition d\'équipe enregistrée avec succès ! 💾');
         } catch (error) {
             console.error('Failed to save team composition:', error);
-            alert('Failed to save team composition. Please try again.');
+            alert('Échec de l\'enregistrement de la composition d\'équipe. Veuillez réessayer.');
         }
     }
 
@@ -1417,11 +1417,11 @@ export class TeamCompositionModal {
                     // Update the modal content to reflect the loaded data
                     this.updateModalContent(team);
 
-                    alert('Team composition loaded successfully! 📁');
+                    alert('Composition d\'équipe chargée avec succès ! 📁');
                 }
             } catch (error) {
                 console.error('Failed to load team composition:', error);
-                alert('Failed to load team composition. Please ensure you selected a valid composition file.');
+                alert('Échec du chargement de la composition d\'équipe. Veuillez vous assurer d\'avoir sélectionné un fichier de composition valide.');
             } finally {
                 // Clear the file input
                 input.value = '';
@@ -1429,7 +1429,7 @@ export class TeamCompositionModal {
         };
 
         reader.onerror = () => {
-            alert('Failed to read the file. Please try again.');
+            alert('Échec de la lecture du fichier. Veuillez réessayer.');
             input.value = '';
         };
 
@@ -1453,7 +1453,7 @@ export class TeamCompositionModal {
     private static finishComposition(): void {
         // Since validation is now done in step 2 transition, we can directly finish
         console.log('Team Composition Complete:', this.teamCompositionSummary);
-        alert('Team composition saved successfully!');
+        alert('Composition d\'équipe enregistrée avec succès !');
         this.closeModal(document.querySelector('.composition-modal-overlay') as HTMLElement);
     }
 
@@ -1548,7 +1548,7 @@ export class TeamCompositionModal {
 
     public static async copySummaryToClipboard(mode: SummaryExportMode): Promise<void> {
         if (!this.teamCompositionSummary) {
-            alert('No team composition to copy.');
+            alert('Aucune composition d\'équipe à copier.');
             return;
         }
 
@@ -1561,7 +1561,7 @@ export class TeamCompositionModal {
             const copyBtn = document.getElementById('copy-summary-btn') as HTMLButtonElement;
             if (copyBtn) {
                 const originalText = copyBtn.textContent;
-                copyBtn.textContent = '✅ Copied!';
+                copyBtn.textContent = '✅ Copié!';
                 copyBtn.disabled = true;
 
                 setTimeout(() => {
@@ -1572,7 +1572,7 @@ export class TeamCompositionModal {
 
         } catch (error) {
             console.error('Failed to copy to clipboard:', error);
-            alert('Failed to copy to clipboard. Please try again.');
+            alert('Échec de la copie dans le presse-papiers. Veuillez réessayer.');
         }
     }
 
