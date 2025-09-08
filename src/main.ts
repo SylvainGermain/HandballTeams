@@ -34,7 +34,7 @@ class HandballTeamsApp {
                     <div class="splash-logo">
                         <img src="${asmbhLogo}" alt="ASMBH Logo" class="logo-image" />
                     </div>
-                    <h1>Équipes de Handball</h1>
+                    <h1>ASMB Handball </h1>
                     <p>Système de Gestion d'Équipes</p>
                 </div>
                 <div class="splash-form">
