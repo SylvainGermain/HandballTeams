@@ -4,6 +4,7 @@ import { TeamDetailsModal} from './modal';
 import { type Team } from './model';
 import { TeamCompositionModal } from './teamComposition';
 import { Resources } from './resources';
+import { ExcelImportModal } from './excelImport';
 import asmbhLogo from '../resources/ASMBH_Logo.png';
 
 class HandballTeamsApp {
@@ -127,6 +128,14 @@ class HandballTeamsApp {
     }
 
     private addEventListeners(): void {
+        // Add event listener for import Excel button
+        const importExcelBtn = document.getElementById('import-excel-btn');
+        if (importExcelBtn) {
+            importExcelBtn.addEventListener('click', () => {
+                ExcelImportModal.show();
+            });
+        }
+
         // Add event listeners for detail buttons
         const detailButtons = document.querySelectorAll('.btn-details');
         detailButtons.forEach(button => {
@@ -166,6 +175,7 @@ class HandballTeamsApp {
         }
     }
 
+
     private createTeamCard(team: Team): string {
         return `
             <div class="team-card">
@@ -182,6 +192,9 @@ class HandballTeamsApp {
     private render(): void {
         const teamsHTML = this.teams.map(team => this.createTeamCard(team)).join('');
         this.container.innerHTML = `
+            <div style="margin-bottom: 20px; text-align: center;">
+                <button class="btn btn-primary" id="import-excel-btn">Importer Fichier Excel</button>
+            </div>
             <div class="team-grid">
                 ${teamsHTML}
             </div>

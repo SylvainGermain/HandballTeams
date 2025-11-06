@@ -30,3 +30,7 @@ https://github.com/nodeca/pako/blob/main/LICENSE
     OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
+
+/*! sheetjs (C) 2013-present SheetJS -- http://sheetjs.com */
+
+/*! xlsx.js (C) 2013-present SheetJS -- http://sheetjs.com */
