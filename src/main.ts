@@ -184,6 +184,98 @@ class HandballTeamsApp {
     }
 
     private handleImportEquipe(): void {
+        // Create modal overlay
+        const modalOverlay = document.createElement('div');
+        modalOverlay.className = 'modal-overlay';
+
+        const modalContent = document.createElement('div');
+        modalContent.className = 'modal-content';
+        modalContent.style.maxWidth = '500px';
+
+        modalContent.innerHTML = `
+            <div class="modal-header">
+                <h2>Importer Équipes</h2>
+            </div>
+            <div class="modal-body">
+                <p>Choisissez la source du fichier:</p>
+                <div style="display: flex; flex-direction: column; gap: 15px; margin: 20px 0;">
+                    <button class="btn btn-primary" id="import-local-btn">
+                        📁 Fichier Local
+                    </button>
+                    <button class="btn btn-primary" id="import-gdrive-btn">
+                        ☁️ Google Drive
+                    </button>
+                </div>
+                <div id="gdrive-input-section" style="display: none; margin-top: 20px;">
+                    <label for="gdrive-url-input" style="display: block; margin-bottom: 8px; font-weight: 600;">
+                        URL du fichier Google Drive:
+                    </label>
+                    <input
+                        type="text"
+                        id="gdrive-url-input"
+                        placeholder="https://drive.google.com/file/d/..."
+                        style="width: 100%; padding: 8px; border: 1px solid #ddd; border-radius: 4px; margin-bottom: 10px;"
+                    />
+                    <button class="btn btn-success" id="gdrive-import-confirm-btn">
+                        Importer depuis Google Drive
+                    </button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="btn btn-secondary" id="cancel-import-equipe-btn">Annuler</button>
+            </div>
+        `;
+
+        modalOverlay.appendChild(modalContent);
+        document.body.appendChild(modalOverlay);
+
+        // Get elements
+        const localBtn = document.getElementById('import-local-btn') as HTMLButtonElement;
+        const gdriveBtn = document.getElementById('import-gdrive-btn') as HTMLButtonElement;
+        const gdriveSection = document.getElementById('gdrive-input-section') as HTMLElement;
+        const gdriveInput = document.getElementById('gdrive-url-input') as HTMLInputElement;
+        const gdriveConfirmBtn = document.getElementById('gdrive-import-confirm-btn') as HTMLButtonElement;
+        const cancelBtn = document.getElementById('cancel-import-equipe-btn') as HTMLButtonElement;
+
+        // Handle local file import
+        localBtn.addEventListener('click', () => {
+            modalOverlay.remove();
+            this.importFromLocal();
+        });
+
+        // Show Google Drive input section
+        gdriveBtn.addEventListener('click', () => {
+            gdriveSection.style.display = 'block';
+            gdriveInput.focus();
+        });
+
+        // Handle Google Drive import
+        gdriveConfirmBtn.addEventListener('click', async () => {
+            const url = gdriveInput.value.trim();
+            if (!url) {
+                alert('Veuillez entrer une URL Google Drive');
+                return;
+            }
+            modalOverlay.remove();
+            await this.importFromGoogleDrive(url);
+        });
+
+        // Handle Enter key in Google Drive input
+        gdriveInput.addEventListener('keypress', (e) => {
+            if (e.key === 'Enter') {
+                gdriveConfirmBtn.click();
+            }
+        });
+
+        // Handle cancel/close
+        const closeModal = () => modalOverlay.remove();
+        cancelBtn.addEventListener('click', closeModal);
+        modalOverlay.addEventListener('click', (e) => {
+            if (e.target === modalOverlay) closeModal();
+        });
+    }
+
+    private importFromLocal(): void {
         // Create a file input element
         const fileInput = document.createElement('input');
         fileInput.type = 'file';
@@ -196,7 +288,7 @@ class HandballTeamsApp {
             if (target.files && target.files.length > 0) {
                 const file = target.files[0];
                 try {
-                    console.log('Importing equipe from file:', file.name);
+                    console.log('Importing equipe from local file:', file.name);
                     await Resources.updateResources(file);
                     alert('Équipes importées avec succès!');
                 } catch (error) {
@@ -211,6 +303,53 @@ class HandballTeamsApp {
         // Append to body and trigger click
         document.body.appendChild(fileInput);
         fileInput.click();
+    }
+
+    private async importFromGoogleDrive(url: string): Promise<void> {
+        try {
+            // Extract file ID from Google Drive URL
+            let fileId = '';
+            const patterns = [
+                /\/file\/d\/([^\/]+)/,  // https://drive.google.com/file/d/FILE_ID/view
+                /id=([^&]+)/,            // https://drive.google.com/open?id=FILE_ID
+                /\/d\/([^\/]+)/          // Generic pattern
+            ];
+
+            for (const pattern of patterns) {
+                const match = url.match(pattern);
+                if (match) {
+                    fileId = match[1];
+                    break;
+                }
+            }
+
+            if (!fileId) {
+                throw new Error('URL Google Drive invalide');
+            }
+
+            // Convert to direct download URL
+            const downloadUrl = `https://drive.google.com/uc?export=download&id=${fileId}`;
+
+            console.log('Downloading from Google Drive:', downloadUrl);
+
+            // Fetch the file
+            const response = await fetch(downloadUrl);
+            if (!response.ok) {
+                throw new Error('Échec du téléchargement depuis Google Drive');
+            }
+
+            // Convert to blob and then to File
+            const blob = await response.blob();
+            const file = new File([blob], 'equipes.xlsx', { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
+
+            // Import using Resources
+            await Resources.updateResources(file);
+            alert('Équipes importées avec succès depuis Google Drive!');
+
+        } catch (error) {
+            console.error('Error importing from Google Drive:', error);
+            alert('Erreur lors de l\'import depuis Google Drive: ' + (error as Error).message);
+        }
     }
 
     private createTeamCard(team: Team): string {
