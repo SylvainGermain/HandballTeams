@@ -136,6 +136,14 @@ class HandballTeamsApp {
             });
         }
 
+        // Add event listener for import equipe button
+        const importEquipeBtn = document.getElementById('import-equipe-btn');
+        if (importEquipeBtn) {
+            importEquipeBtn.addEventListener('click', () => {
+                this.handleImportEquipe();
+            });
+        }
+
         // Add event listeners for detail buttons
         const detailButtons = document.querySelectorAll('.btn-details');
         detailButtons.forEach(button => {
@@ -175,6 +183,35 @@ class HandballTeamsApp {
         }
     }
 
+    private handleImportEquipe(): void {
+        // Create a file input element
+        const fileInput = document.createElement('input');
+        fileInput.type = 'file';
+        fileInput.accept = '.xls,.xlsx';
+        fileInput.style.display = 'none';
+
+        // Handle file selection
+        fileInput.addEventListener('change', async (event) => {
+            const target = event.target as HTMLInputElement;
+            if (target.files && target.files.length > 0) {
+                const file = target.files[0];
+                try {
+                    console.log('Importing equipe from file:', file.name);
+                    await Resources.updateResources(file);
+                    alert('Équipes importées avec succès!');
+                } catch (error) {
+                    console.error('Error importing equipe:', error);
+                    alert('Erreur lors de l\'import des équipes');
+                }
+            }
+            // Remove the file input after use
+            document.body.removeChild(fileInput);
+        });
+
+        // Append to body and trigger click
+        document.body.appendChild(fileInput);
+        fileInput.click();
+    }
 
     private createTeamCard(team: Team): string {
         return `
@@ -193,7 +230,8 @@ class HandballTeamsApp {
         const teamsHTML = this.teams.map(team => this.createTeamCard(team)).join('');
         this.container.innerHTML = `
             <div style="margin-bottom: 20px; text-align: center;">
-                <button class="btn btn-primary" id="import-excel-btn">Importer Fichier Excel</button>
+                <button class="btn btn-primary" id="import-excel-btn">Créer com "jour de match"</button>
+                <button class="btn btn-primary" id="import-equipe-btn">Importer Equipes</button>
             </div>
             <div class="team-grid">
                 ${teamsHTML}

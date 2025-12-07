@@ -6,6 +6,7 @@ import AdversaireData from '../resources/adversaire.json';
 import asmbhLogo from '../resources/ASMBH_Logo.png';
 
 import { Adversaire, Player } from './model';
+import * as XLSX from 'xlsx';
 
 async function getCryptoKey(password: string) {
     const encoder = new TextEncoder();
@@ -97,6 +98,64 @@ async function getAsyncAdversaireData(privateKey: string) {
     return decryptedData;
 }
 
+function convertSheet(sheet: XLSX.WorkSheet, sheetName: string) {
+  if (sheetName.toLowerCase() === 'adversaire') {
+    console.log(`Unsupported converting sheet for: ${sheetName}`);
+    return;
+  }
+
+  // Convert sheet to JSON
+  const jsonData: any[] = XLSX.utils.sheet_to_json(sheet, { header: 1, raw: false });
+  // Extract field names from the first row of the data, and trim spaces
+  const fieldNames = jsonData[0].map((field: string) => {
+    const label = field.trim().replace(/ /g, '').toLowerCase();
+    return {
+      label: label,
+      toUpper: label.includes('post')
+    };
+  });
+
+  // Remove the first row from the data
+  const dataWithoutHeader = jsonData.slice(1);
+
+  // Create an array of objects with field names and values
+  const jsonArray: Player[] = dataWithoutHeader.map(row => {
+      const obj: { [key: string]: string } = {};
+      // populate obj with values from the current row
+      row.forEach((value: string, index: number) => {
+        const v = value.trim();
+        if (v.length > 0) {
+          obj[fieldNames[index].label] = fieldNames[index].toUpper ? v.toUpperCase() : v; // Convert values to strings
+        }
+      });
+
+      return Object.entries(obj).length === 0 ? undefined : (obj as unknown as Player);
+  }).filter( value => value !== null && value !== undefined);
+  cache.set(sheetName, jsonArray);
+}
+
+async function excelToJson(file: File): Promise<void> {
+  return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            try {
+                const data = e.target?.result;
+                const workbook = XLSX.read(data, { type: 'binary' });
+                workbook.SheetNames.forEach( sheetName => {
+                  convertSheet(workbook.Sheets[sheetName], sheetName);
+                });
+                resolve();
+            } catch (error) {
+                reject(error);
+            }
+        };
+
+        reader.onerror = (error) => reject(error);
+        reader.readAsBinaryString(file);
+    });
+}
+
 const cache = new Map<string, Player[]|Adversaire[]>();
 
 export namespace Resources {
@@ -108,6 +167,10 @@ export namespace Resources {
     await getAsyncAdversaireData(privateKey);
   }
 
+  export async function updateResources(file: File) {
+    console.log('updateResources from file:', file.name);
+    await excelToJson(file);
+  }
 
   export function getAdversaire(): Adversaire[] {
     const cached = cache.get('adversaire');
